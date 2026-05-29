@@ -1,0 +1,49 @@
+Subject: Re: Projeto Assistente IA – Alinhamento de expectativas
+
+Olá, [Nome do Diretor]!
+
+Que ótima notícia saber que a diretoria está animada com o projeto — esse entusiasmo é fundamental para o sucesso da iniciativa.
+
+Queria aproveitar este momento para alinharmos alguns pontos importantes antes de avançarmos, justamente para garantir que o resultado final supere as expectativas.
+
+
+📌 Como o assistente funciona, na prática
+
+O assistente que vamos construir funciona de forma parecida com um funcionário novo muito inteligente e dedicado. Ele aprende tudo o que você ensina a ele — mas só sabe aquilo que foi ensinado.
+
+Porém, tem um detalhe importante sobre como ele "pensa": ele não trabalha com certezas, ele trabalha com probabilidades. Imagine que você pergunta ao assistente: "Qual é o prazo de entrega para clientes do tipo A?". Ele não vai a uma gaveta e puxa a resposta exata — ele analisa tudo o que já leu e calcula qual é a resposta mais provável de estar correta. É parecido com um médico experiente que, ao ver os sintomas de um paciente, não consulta um oráculo: ele usa o que aprendeu ao longo da carreira para chegar à conclusão mais provável.
+
+Isso significa que, quanto mais completo, organizado e sem contradições for o material que ele recebe, maior é a probabilidade de ele acertar. E quanto mais confuso ou desatualizado for esse material, maior é o risco de ele entregar uma resposta errada — mesmo com total confiança.
+
+
+📌 Por que a base de informações é tão decisiva
+
+Em vez de o assistente tentar "adivinhar" respostas do zero, nós vamos configurá-lo para sempre consultar primeiro os documentos oficiais da NovaTech antes de responder. É como se, toda vez que um atendente fizesse uma pergunta, o assistente corresse até a estante, lesse os manuais relevantes e só então formulasse a resposta — citando de onde tirou aquela informação.
+
+Essa abordagem tem uma vantagem enorme: ela amarra as respostas à realidade da empresa, e não a suposições. Mas ela também tem uma condição inegociável: os documentos dessa estante precisam estar certos. Se houver dois manuais dizendo coisas diferentes sobre o mesmo prazo, o assistente vai encontrar os dois — e pode se confundir, assim como qualquer atendente humano se confundiria.
+
+Por isso, um passo essencial do projeto — antes de qualquer tecnologia — é organizar e validar a documentação da NovaTech. Isso não é um obstáculo: é o que vai garantir que o assistente entregue respostas corretas e confiáveis.
+
+
+📌 Critérios para avaliarmos o sucesso juntos
+
+Para que possamos medir se o projeto está no caminho certo, sugiro que trabalhemos com os seguintes critérios — cada um com uma forma concreta de acompanhamento:
+
+1. Tempo de resposta por chamado
+Meta: o time de atendimento encontra a informação em menos de 2 minutos em pelo menos 80% dos chamados que envolvem consulta a documentação.
+Como medir: registramos o tempo de cada consulta diretamente na ferramenta de atendimento que a NovaTech já utiliza (como o próprio Teams ou o sistema de chamados). Fazemos uma comparação simples do antes e depois, com base nos registros existentes. Não é necessário nenhum sistema novo para isso.
+
+2. Confiabilidade das respostas
+Meta: ao menos 90% das respostas são avaliadas como corretas e úteis pelos próprios atendentes no primeiro mês de uso.
+Como medir: incluímos no assistente um botão simples de avaliação — "essa resposta foi útil? Sim ou Não" — igual ao que vemos em aplicativos do dia a dia. Esses votos são registrados automaticamente e geram um painel de acompanhamento semanal para a liderança. Nos casos marcados como "Não", conseguimos identificar exatamente onde o assistente errou e corrigir a documentação correspondente.
+
+3. Processo de atualização funcionando
+Meta: as três áreas responsáveis pela documentação (Operações, Compliance e Comercial) seguem um fluxo único de revisão, garantindo que o assistente sempre consulte a versão mais recente e sem contradições.
+Como medir: criamos uma rotina mensal simples — uma lista de verificação (checklist) que cada área preenche ao atualizar seus documentos, confirmando que a versão nova substituiu a antiga. Esse registro fica centralizado em um único lugar, visível para todas as áreas e para a gestão do projeto. Com isso, qualquer documento desatualizado ou conflitante é identificado antes de chegar ao assistente.
+
+
+Estamos muito comprometidos em entregar um resultado que faça diferença real no dia a dia do time. E com as bases bem construídas, esse resultado é totalmente alcançável dentro do prazo previsto.
+
+Fico à disposição para conversarmos mais sobre esses pontos.
+
+Abra​ços,
