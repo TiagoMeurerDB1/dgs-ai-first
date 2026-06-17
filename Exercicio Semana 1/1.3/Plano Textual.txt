@@ -1,0 +1,78 @@
+Esse é o plano completo das duas semanas. A lógica central é esta: a IA trabalha primeiro e sozinha, para que os humanos cheguem nas entrevistas com o dever de casa feito.
+
+---
+
+**Semana 1 — Fase Intent (IA-first)**
+
+Quatro agentes atuam em paralelo nos primeiros 5 dias, cada um com uma skill específica:
+
+- IA-01 faz o inventário bruto — varre as três fontes e classifica os 1.250 documentos com score de qualidade
+- IA-02 cruza documentos do mesmo domínio e detecta contradições, que foi identificado como risco crítico R02
+- IA-03 mapeia quais documentos se referenciam entre si e quais ficam órfãos
+- IA-04 analisa os chamados reais (alimentados pelos humanos em H-02) e cruza com a documentação
+
+O único trabalho humano nessa semana é liberar acessos no dia 1 (H-01), fornecer exemplos de perguntas reais para calibrar os agentes (H-02) e validar os outputs ao final (H-03). Sem essa validação humana, o Gate 1 não fecha.
+
+**Gate 1** é o momento decisivo da semana 1: o inventário validado, o mapa de conflitos e o ranking de cobertura viram o insumo das entrevistas da semana 2.
+
+---
+
+**Semana 2 — Discovery humano guiado pela IA**
+
+Aqui a lógica inverte: os humanos vão a campo, mas com roteiros gerados pela IA (IA-05), não montados do zero. As entrevistas são focadas nos gaps e conflitos reais identificados na semana 1 — não em exploração aberta.
+
+Enquanto as entrevistas acontecem, IA-06 faz a análise de qualidade profunda dos documentos priorizados, estimando o esforço de higienização por lote. Ao final, IA-07 consolida tudo no relatório de discovery, que alimenta diretamente o sprint 1.
+
+---
+
+**O que esse modelo resolve na prática**
+
+As entrevistas com stakeholders deixam de ser o ponto de partida — viram o ponto de validação. Isso reduz o tempo de entrevista necessário, aumenta a qualidade das perguntas e antecipa decisões que normalmente só aparecem no meio do desenvolvimento. O discovery em 2 semanas só é viável porque a IA comprime a fase de "entender o que existe" de semanas para dias.
+
+Quer que eu exporte esse plano para o documento Word do projeto, ou prefere refinar alguma atividade primeiro?
+
+
+A IA-01 é a atividade fundacional de todo o discovery — sem ela, nenhuma das outras funciona, porque todas dependem de saber o que existe e em que estado está.
+
+---
+
+**O que o agente faz, concretamente**
+
+O agente recebe acesso às três fontes (via Graph API para SharePoint, API REST para Confluence e acesso de rede para a pasta de planilhas) e executa quatro tarefas em sequência:
+
+**1 — Varredura e catalogação**
+Lista todos os documentos acessíveis com seus metadados nativos: nome, caminho, tipo de arquivo, tamanho, data de criação, data de última modificação e autor da última edição. Isso já resolve boa parte do inventário — não é necessário ler o conteúdo de todos os 1.250 documentos para saber que eles existem.
+
+**2 — Classificação por domínio**
+O agente lê o conteúdo de cada documento (ou seus primeiros blocos, para eficiência) e o classifica nas categorias de negócio da NovaTech: Operações, Compliance, Comercial, SLA, Segurança de Carga, etc. Documentos que não se encaixam em nenhuma categoria recebem a tag "não classificado" — isso é um sinal de alerta, não um erro.
+
+**3 — Score de qualidade**
+Para cada documento, o agente atribui um score em quatro dimensões:
+
+| Dimensão | O que avalia |
+|---|---|
+| Legibilidade | É um PDF digital (texto extraível) ou escaneado (só imagem)? O texto tem OCR aplicado? |
+| Estrutura | Tem títulos, seções, sumário? Ou é um bloco corrido de texto? |
+| Completude | Tem data de vigência? Tem autor identificado? Tem versão? |
+| Cobertura | Cobre um assunto inteiro ou é um fragmento que referencia outro documento? |
+
+Cada dimensão recebe 0, 1 ou 2 pontos. Score total de 0 a 8 — documentos abaixo de 4 vão para a lista de "requer higienização antes da ingestão".
+
+**4 — Detecção de lacunas (gaps)**
+O agente cruza os domínios identificados com o ranking de perguntas fornecido em H-02. Se o atendimento tem muitas dúvidas sobre "regras de frete para cliente premium" mas nenhum documento cobre esse tema com score ≥ 4, isso é um gap registrado — significa que a resposta hoje existe na cabeça de alguém, não na documentação.
+
+---
+
+**O que o agente não faz**
+
+Ele não decide o que é relevante ou irrelevante — ele mapeia e pontua. A decisão de o que entra na fase 1 do assistente é humana, feita em H-05 na semana 2. O agente entrega o mapa; os humanos traçam a rota.
+
+Ele também não resolve conflitos — isso é tarefa do IA-02, que recebe o inventário como entrada.
+
+---
+
+**Por que isso importa para o prazo**
+
+Sem a IA-01, o time passaria a primeira semana do discovery fazendo essa varredura manualmente — o que seria realista levar 2 a 3 semanas para 1.250 documentos em 3 fontes distintas. Com o agente, isso acontece em 2 dias, com rastreabilidade completa e um score objetivo por documento que elimina discussões subjetivas sobre "esse documento presta ou não presta" nas entrevistas com os stakeholders.
+
+Quer detalhar como montar o prompt ou a skill desse agente específico, ou seguimos para outra atividade?

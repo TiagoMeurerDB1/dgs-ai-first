@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cronograma Discovery — NovaTech IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ── Viewport base ────────────────────────────────────────────────── */
+html,body{height:100%;overflow-x:hidden}
+html{scroll-snap-type:y mandatory;scroll-behavior:smooth}
+.slide{width:100vw;height:100vh;height:100dvh;overflow:hidden;scroll-snap-align:start;display:flex;flex-direction:column;position:relative}
+.slide-content{flex:1;display:flex;flex-direction:column;justify-content:center;max-height:100%;overflow:hidden;padding:var(--sp)}
+:root{
+  --title-size:clamp(1.4rem,4vw,3.2rem);
+  --h2-size:clamp(1.1rem,2.8vw,2rem);
+  --h3-size:clamp(.9rem,2vw,1.4rem);
+  --body-size:clamp(.7rem,1.3vw,1rem);
+  --small-size:clamp(.6rem,.9vw,.8rem);
+  --sp:clamp(.8rem,3vw,3rem);
+  --gap:clamp(.3rem,1.2vw,1.2rem);
+  --el-gap:clamp(.2rem,.8vw,.8rem);
+
+  /* palette — dark editorial, amber accents */
+  --bg:       #0e0e12;
+  --bg2:      #16161c;
+  --bg3:      #1e1e26;
+  --border:   #2a2a38;
+  --text:     #e8e6f0;
+  --muted:    #7a7890;
+  --ai:       #3b6ff5;
+  --ai-light: #1a2f6a;
+  --ai-glow:  rgba(59,111,245,.18);
+  --hum:      #17b97a;
+  --hum-light:#0d4030;
+  --hum-glow: rgba(23,185,122,.15);
+  --gate:     #f0a020;
+  --gate-light:#3a2800;
+  --gate-glow: rgba(240,160,32,.15);
+  --amber:    #f0a020;
+}
+@media(max-height:700px){:root{--sp:clamp(.5rem,2vw,1.5rem);--title-size:clamp(1.1rem,3.5vw,2.2rem);--h2-size:clamp(.9rem,2.2vw,1.4rem)}}
+@media(max-height:600px){:root{--sp:clamp(.4rem,1.5vw,1rem);--body-size:clamp(.6rem,1vw,.85rem)}.nav-dots,.kbd-hint{display:none}}
+@media(max-height:500px){:root{--title-size:clamp(.9rem,3vw,1.4rem);--h2-size:clamp(.8rem,2vw,1.1rem)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.2s!important}html{scroll-behavior:auto}}
+
+/* ── Base ─────────────────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text)}
+
+/* ── Nav dots ────────────────────────────────────────────────────── */
+.nav-dots{position:fixed;right:clamp(.8rem,2vw,2rem);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:.5rem;z-index:100}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:all .3s;cursor:pointer;border:none}
+.dot.active{background:var(--amber);transform:scale(1.6)}
+.dot:hover{background:var(--muted)}
+
+/* ── Slide 1: Title ──────────────────────────────────────────────── */
+#s1{background:var(--bg)}
+.grid-overlay{position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:clamp(32px,5vw,60px) clamp(32px,5vw,60px);opacity:.25}
+.title-wrap{display:flex;flex-direction:column;gap:var(--gap);position:relative;z-index:1}
+.tag{font-family:'DM Mono',monospace;font-size:var(--small-size);color:var(--amber);letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;gap:.5em}
+.tag::before{content:'';width:2em;height:1px;background:var(--amber)}
+.main-title{font-size:var(--title-size);font-weight:800;line-height:1.05;color:var(--text)}
+.main-title em{font-style:normal;color:var(--amber)}
+.subtitle{font-family:'DM Mono',monospace;font-size:var(--body-size);color:var(--muted);max-width:55ch;line-height:1.6}
+.meta-row{display:flex;gap:clamp(.8rem,2vw,2rem);margin-top:clamp(.4rem,1.5vh,1.2rem);flex-wrap:wrap}
+.meta-chip{font-family:'DM Mono',monospace;font-size:var(--small-size);padding:.3em .9em;border:1px solid var(--border);border-radius:2px;color:var(--muted)}
+.meta-chip span{color:var(--text)}
+.legend-strip{position:absolute;bottom:clamp(1rem,3vh,2.5rem);left:var(--sp);display:flex;gap:clamp(.8rem,2vw,2rem);flex-wrap:wrap}
+.leg{display:flex;align-items:center;gap:.5em;font-family:'DM Mono',monospace;font-size:var(--small-size);color:var(--muted)}
+.leg-bar{width:1.4em;height:3px;border-radius:1px}
+.deco-line{position:absolute;top:0;right:clamp(8rem,20vw,22rem);width:1px;height:100%;background:linear-gradient(to bottom,transparent,var(--border) 20%,var(--border) 80%,transparent);opacity:.4}
+
+/* ── Slide 2 & 3: Gantt ─────────────────────────────────────────── */
+#s2,#s3{background:var(--bg)}
+.gantt-wrap{display:flex;flex-direction:column;gap:0;max-height:calc(100vh - 8rem);overflow:hidden;position:relative;z-index:1}
+.slide-label{font-family:'DM Mono',monospace;font-size:var(--small-size);color:var(--amber);letter-spacing:.1em;text-transform:uppercase;margin-bottom:clamp(.4rem,1.2vh,1rem)}
+
+/* Gantt header */
+.g-head{display:grid;align-items:center;padding:0 0 clamp(.3rem,.8vh,.7rem)}
+.g-head-left{font-family:'DM Mono',monospace;font-size:var(--small-size);color:var(--muted)}
+.g-days{display:flex;gap:0;flex:1}
+.g-day{flex:1;text-align:center;font-family:'DM Mono',monospace;font-size:var(--small-size);color:var(--muted);padding:.2em 0;border-left:1px solid var(--border);position:relative}
+.g-day.today{color:var(--amber)}
+
+/* Gantt rows */
+.g-row{display:grid;align-items:center;padding:clamp(.15rem,.5vh,.4rem) 0;border-top:1px solid var(--border);position:relative}
+.g-row:last-child{border-bottom:1px solid var(--border)}
+.g-row-label{display:flex;align-items:center;gap:.5em;overflow:hidden}
+.g-id{font-family:'DM Mono',monospace;font-size:var(--small-size);font-weight:500;flex-shrink:0;padding:.2em .5em;border-radius:2px}
+.g-id.ai{background:var(--ai-light);color:var(--ai)}
+.g-id.hum{background:var(--hum-light);color:var(--hum)}
+.g-id.gate{background:var(--gate-light);color:var(--gate)}
+.g-name{font-size:var(--small-size);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g-who{font-family:'DM Mono',monospace;font-size:clamp(.5rem,.75vw,.68rem);color:var(--muted);flex-shrink:0}
+
+/* Gantt bar grid */
+.g-bars{display:flex;gap:0;flex:1;position:relative}
+.g-cell{flex:1;border-left:1px solid var(--border);position:relative;min-height:1.6em}
+
+/* Bars drawn with absolute positioning inside .g-bars */
+.g-bar{position:absolute;top:50%;transform:translateY(-50%);height:clamp(6px,1.1vh,12px);border-radius:2px;display:flex;align-items:center;padding:0 .3em;white-space:nowrap;overflow:hidden;font-family:'DM Mono',monospace;font-size:clamp(.45rem,.65vw,.62rem)}
+.g-bar.ai{background:var(--ai);color:#fff;box-shadow:0 0 10px var(--ai-glow)}
+.g-bar.hum{background:var(--hum);color:#051a12;box-shadow:0 0 10px var(--hum-glow)}
+.g-bar.gate{background:var(--gate);color:#1a1200;box-shadow:0 0 12px var(--gate-glow);height:clamp(8px,1.4vh,16px);font-weight:600}
+.g-dep{position:absolute;top:50%;transform:translateY(-50%);height:1px;background:var(--border);z-index:0}
+.g-dep::after{content:'▶';position:absolute;right:-4px;top:50%;transform:translateY(-50%);font-size:.5em;color:var(--border)}
+
+/* Gate label beside bar */
+.g-bar-label{margin-left:.4em;font-size:clamp(.45rem,.6vw,.58rem);opacity:.85}
+
+/* ── Slide 4: Deliverables ───────────────────────────────────────── */
+#s4{background:var(--bg)}
+.del-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--el-gap);max-height:calc(100vh - 10rem);overflow:hidden}
+.del-card{background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:clamp(.5rem,1.2vh,1rem) clamp(.6rem,1.5vw,1.2rem);display:flex;flex-direction:column;gap:.3em;transition:border-color .2s}
+.del-card:hover{border-color:var(--amber)}
+.del-top{display:flex;align-items:center;gap:.5em}
+.del-id{font-family:'DM Mono',monospace;font-size:var(--small-size);font-weight:500;padding:.15em .5em;border-radius:2px}
+.del-id.ai{background:var(--ai-light);color:var(--ai)}
+.del-id.hum{background:var(--hum-light);color:var(--hum)}
+.del-id.gate{background:var(--gate-light);color:var(--gate)}
+.del-title{font-size:var(--small-size);font-weight:600;color:var(--text)}
+.del-output{font-family:'DM Mono',monospace;font-size:clamp(.5rem,.7vw,.65rem);color:var(--muted);line-height:1.4;border-left:2px solid var(--border);padding-left:.6em}
+.del-feeds{font-family:'DM Mono',monospace;font-size:clamp(.45rem,.6vw,.58rem);color:var(--amber);margin-top:.2em}
+
+/* ── Shared header bar ───────────────────────────────────────────── */
+.slide-top{display:flex;align-items:center;justify-content:space-between;padding:clamp(.6rem,1.5vh,1.2rem) var(--sp);border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg)}
+.s-top-title{font-size:var(--h3-size);font-weight:700;color:var(--text)}
+.s-top-right{font-family:'DM Mono',monospace;font-size:var(--small-size);color:var(--muted)}
+.week-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:var(--small-size);padding:.2em .7em;border-radius:2px;border:1px solid;margin-right:.5em}
+.week-badge.w1{border-color:var(--ai);color:var(--ai)}
+.week-badge.w2{border-color:var(--hum);color:var(--hum)}
+
+/* entry animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes barIn{from{opacity:0;transform:scaleX(0) translateY(-50%);transform-origin:left center}to{opacity:1;transform:scaleX(1) translateY(-50%);transform-origin:left center}}
+.slide.active .g-bar{animation:barIn .5s cubic-bezier(.2,0,.2,1) both}
+.slide.active .g-row{animation:fadeUp .4s ease both}
+.slide.active .del-card{animation:fadeUp .4s ease both}
+
+/* stagger delays */
+.g-row:nth-child(1){animation-delay:.05s}.g-row:nth-child(2){animation-delay:.1s}.g-row:nth-child(3){animation-delay:.15s}.g-row:nth-child(4){animation-delay:.2s}.g-row:nth-child(5){animation-delay:.25s}.g-row:nth-child(6){animation-delay:.3s}.g-row:nth-child(7){animation-delay:.35s}.g-row:nth-child(8){animation-delay:.4s}.g-row:nth-child(9){animation-delay:.45s}
+.g-bar:nth-child(1){animation-delay:.3s}.g-bar:nth-child(2){animation-delay:.4s}.g-bar:nth-child(3){animation-delay:.5s}.g-bar:nth-child(4){animation-delay:.6s}.g-bar:nth-child(5){animation-delay:.7s}.g-bar:nth-child(6){animation-delay:.8s}.g-bar:nth-child(7){animation-delay:.9s}.g-bar:nth-child(8){animation-delay:1s}.g-bar:nth-child(9){animation-delay:1.1s}
+.del-card:nth-child(1){animation-delay:.05s}.del-card:nth-child(2){animation-delay:.1s}.del-card:nth-child(3){animation-delay:.15s}.del-card:nth-child(4){animation-delay:.2s}.del-card:nth-child(5){animation-delay:.25s}.del-card:nth-child(6){animation-delay:.3s}.del-card:nth-child(7){animation-delay:.35s}.del-card:nth-child(8){animation-delay:.4s}
+</style>
+</head>
+<body>
+
+<!-- Nav dots -->
+<nav class="nav-dots" aria-label="Navegação">
+  <button class="dot active" onclick="goTo(0)" aria-label="Slide 1"></button>
+  <button class="dot" onclick="goTo(1)" aria-label="Slide 2"></button>
+  <button class="dot" onclick="goTo(2)" aria-label="Slide 3"></button>
+  <button class="dot" onclick="goTo(3)" aria-label="Slide 4"></button>
+</nav>
+
+<!-- ══ SLIDE 1: TITLE ══════════════════════════════════════════════ -->
+<section class="slide active" id="s1">
+  <div class="grid-overlay"></div>
+  <div class="deco-line"></div>
+  <div class="slide-content">
+    <div class="title-wrap">
+      <div class="tag">DB1 Group · NovaTech Logística · 2026</div>
+      <h1 class="main-title">Cronograma<br>de <em>Discovery</em></h1>
+      <p class="subtitle">Plano AI First SDLC — duas semanas, 13 atividades,<br>dois gates de entrega. Fase Intent (IA) + Discovery humano.</p>
+      <div class="meta-row">
+        <div class="meta-chip">Duração <span>10 dias úteis</span></div>
+        <div class="meta-chip">Atividades IA <span>7</span></div>
+        <div class="meta-chip">Atividades humanas <span>6</span></div>
+        <div class="meta-chip">Gates <span>2</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="legend-strip">
+    <div class="leg"><div class="leg-bar" style="background:var(--ai)"></div>Agente de IA</div>
+    <div class="leg"><div class="leg-bar" style="background:var(--hum)"></div>Humano</div>
+    <div class="leg"><div class="leg-bar" style="background:var(--gate)"></div>Gate / entregável</div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 2: GANTT — SEMANA 1 ══════════════════════════════════ -->
+<section class="slide" id="s2">
+  <div class="slide-top">
+    <div class="s-top-title"><span class="week-badge w1">Semana 1</span>Fase Intent — IA-first</div>
+    <div class="s-top-right">Dias 1 → 5 · pré-entrevistas</div>
+  </div>
+  <div class="slide-content" style="padding-top:clamp(.4rem,1vh,.8rem);padding-bottom:clamp(.4rem,1vh,.8rem)">
+
+    <!--
+      Gantt grid: col-label = 36% | days 1..5 = 64%
+      Each day = 64% / 5 = 12.8% of total width
+      Bar left offset = label_width + (day-1)*day_width
+      Bar width = duration * day_width
+    -->
+    <style>
+      .gw1{grid-template-columns:36% repeat(5,1fr)}
+    </style>
+
+    <!-- day headers -->
+    <div class="g-head gw1" style="display:grid">
+      <div class="g-head-left" style="font-family:'DM Mono',monospace;font-size:var(--small-size);color:var(--muted);padding-left:.3em">Atividade</div>
+      <div class="g-day">Dia 1</div>
+      <div class="g-day">Dia 2</div>
+      <div class="g-day">Dia 3</div>
+      <div class="g-day">Dia 4</div>
+      <div class="g-day">Dia 5</div>
+    </div>
+
+    <!-- rows -->
+    <div class="gantt-wrap" style="gap:0;overflow:hidden">
+
+      <!-- H-01 -->
+      <div class="g-row gw1" style="display:grid">
+        <div class="g-row-label" style="padding-left:.3em;gap:.4em">
+          <span class="g-id hum">H-01</span>
+          <span class="g-name">Kickoff e acessos</span>
+          <span class="g-who">Humano</span>
+        </div>
+        <!-- Bar: dia 1, dur 1 → left=0/5=0%, width=1/5=20% of bar zone -->
+        <div style="position:relative;grid-column:2/7;display:flex;align-items:center">
+          <div class="g-bar hum" style="left:0%;width:18%">Liberar APIs</div>
+        </div>
+      </div>
+
+      <!-- IA-01 -->
+      <div class="g-row gw1" style="display:grid">
+        <div class="g-row-label" style="padding-left:.3em;gap:.4em">
+          <span class="g-id ai">IA-01</span>
+          <span class="g-name">Inventário documental</span>
+          <span class="g-who">Agente IA</span>
+        </div>
+        <div style="position:relative;grid-column:2/7;display:flex;align-items:center">
+          <!-- Dia 1–2 = 0% a 40% -->
+          <div class="g-bar ai" style="left:0%;width:38%">1.250 docs · score</div>
+        </div>
+      </div>
+
+      <!-- H-02 -->
+      <div class="g-row gw1" style="display:grid">
+        <div class="g-row-label" style="padding-left:.3em;gap:.4em">
+          <span class="g-id hum">H-02</span>
+          <span class="g-name">Perguntas do atendimento</span>
+          <span class="g-who">Humano</span>
+        </div>
+        <div style="position:relative;grid-column:2/7;display:flex;align-items:center">
+          <!-- Dia 2–3 = 20% a 60% -->
+          <div class="g-bar hum" style="left:20%;width:38%">30–50 perguntas reais</div>
+        </div>
+      </div>
+
+      <!-- IA-02 -->
+      <div class="g-row gw1" style="display:grid">
+        <div class="g-row-label" style="padding-left:.3em;gap:.4em">
+          <span class="g-id ai">IA-02</span>
+          <span class="g-name">Detecção de contradições</span>
+          <span class="g-who">Agente IA</span>
+        </div>
+        <div style="position:relative;grid-column:2/7;display:flex;align-items:center">
+          <!-- Dia 2–3 = 20% a 60% -->
+          <div class="g-bar ai" style="left:20%;width:38%">Conflitos priorizados</div>
+        </div>
+      </div>
+
+      <!-- IA-03 -->
+      <div class="g-row gw1" style="display:grid">
+        <div class="g-row-label" style="padding-left:.3em;gap:.4em">
+          <span class="g-id ai">IA-03</span>
+          <span class="g-name">Mapeamento de dependências</span>
+          <span class="g-who">Agente IA</span>
+        </div>
+        <div style="position:relative;grid-column:2/7;display:flex;align-items:center">
+          <!-- Dia 3–4 = 40% a 80% -->
+          <div class="g-bar ai" style="left:40%;width:38%">Grafo de fontes</div>
+        </div>
+      </div>
+
+      <!-- IA-04 -->
+      <div class="g-row gw1" style="display:grid">
+        <div class="g-row-label" style="padding-left:.3em;gap:.4em">
+          <span class="g-id ai">IA-04</span>
+          <span class="g-name">Perguntas × cobertura</span>
+          <span class="g-who">Agente IA</span>
+        </div>
+        <div style="position:relative;grid-column:2/7;display:flex;align-items:center">
+          <!-- Dia 4–5 = 60% a 100% -->
+          <div class="g-bar ai" style="left:60%;width:38%">Ranking de gaps</div>
+        </div>
+      </div>
+
+      <!-- H-03 -->
+      <div class="g-row gw1" style="display:grid">
+        <div class="g-row-label" style="padding-left:.3em;gap:.4em">
+          <span class="g-id hum">H-03</span>
+          <span class="g-name">Validação dos outputs</span>
+          <span class="g-who">Humano</span>
+        </div>
+        <div style="position:relative;grid-column:2/7;display:flex;align-items:center">
+          <!-- Dia 4–5 = 60% a 100% -->
+          <div class="g-bar hum" style="left:60%;width:38%">Revisão humana</div>
+        </div>
+      </div>
+
+      <!-- GATE 1 -->
+      <div class="g-row gw1" style="display:grid;background:var(--gate-light)">
+        <div class="g-row-label" style="padding-left:.3em;gap:.4em">
+          <span class="g-id gate">GATE 1</span>
+          <span class="g-name" style="color:var(--gate)">Pacote Intent consolidado</span>
+        </div>
+        <div style="position:relative;grid-column:2/7;display:flex;align-items:center">
+          <!-- Fim dia 5 = 100% = ponto -->
+          <div class="g-bar gate" style="left:92%;width:8%">▶ Fim sem. 1</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 3: GANTT — SEMANA 2 ══════════════════════════════════ -->
+<section class="slide" id="s3">
+  <div class="slide-top">
+    <div class="s-top-title"><span class="week-badge w2">Semana 2</span>Discovery humano</div>
+    <div class="s-top-right">Dias 6 → 10 · guiado pela IA</div>
+  </div>
+  <div class="slide-content" style="padding-top:clamp(.4rem,1vh,.8rem);padding-bottom:clamp(.4rem,1vh,.8rem)">
+
+    <style>
+      .gw2{grid-template-columns:36% repeat(5,1fr)}
+    </style>
+
+    <div class="g-head gw2" style="display:grid">
+      <div class="g-head-left" style="font-family:'DM Mono',monospace;font-size:var(--small-size);color:var(--muted);padding-left:.3em">Atividade</div>
+      <div class="g-day">Dia 6</div>
+      <div class="g-day">Dia 7</div>
+      <div class="g-day">Dia 8</div>
+      <div class="g-day">Dia 9</div>
+      <div class="g-day">Dia 10</div>
+    </div>
+
+    <div class="gantt-wrap" style="gap:0;overflow:hidden">
+
+      <!-- IA-05 -->
+      <div class="g-row gw2" style="display:grid">
+        <div class="g-row-label" style="padding-left:.3em;gap:.4em">
+          <span class="g-id ai">IA-05</span>
+          <span class="g-name">Roteiros de entrevista</span>
+          <span class="g-who">Agente IA</span>
+        </div>
+        <div style="position:relative;grid-column:2/7;display:flex;align-items:center">
+          <!-- Dia 5–6 rel = 0%–40% aqui representado como dia6 início até dia6 fim -->
+          <div class="g-bar ai" style="left:0%;width:38%">4 roteiros por área</div>
+        </div>
+      </div>
+
+      <!-- H-04 -->
+      <div class="g-row gw2" style="display:grid">
+        <div class="g-row-label" style="padding-left:.3em;gap:.4em">
+          <span class="g-id hum">H-04</span>
+          <span class="g-name">Entrevistas stakeholders</span>
+          <span class="g-who">Humano</span>
+        </div>
+        <div style="position:relative;grid-column:2/7;display:flex;align-items:center">
+          <!-- Dia 6–8 = 0% a 60% -->
+          <div class="g-bar hum" style="left:0%;width:58%">4 áreas · conflitos validados</div>
+        </div>
+      </div>
+
+      <!-- IA-06 -->
+      <div class="g-row gw2" style="display:grid">
+        <div class="g-row-label" style="padding-left:.3em;gap:.4em">
+          <span class="g-id ai">IA-06</span>
+          <span class="g-name">Qualidade documental profunda</span>
+          <span class="g-who">Agente IA</span>
+        </div>
+        <div style="position:relative;grid-column:2/7;display:flex;align-items:center">
+          <!-- Dia 7–8 = 20% a 60% -->
+          <div class="g-bar ai" style="left:20%;width:38%">Esforço de higienização</div>
+        </div>
+      </div>
+
+      <!-- H-05 -->
+      <div class="g-row gw2" style="display:grid">
+        <div class="g-row-label" style="padding-left:.3em;gap:.4em">
+          <span class="g-id hum">H-05</span>
+          <span class="g-name">Priorização 80/20</span>
+          <span class="g-who">Humano</span>
+        </div>
+        <div style="position:relative;grid-column:2/7;display:flex;align-items:center">
+          <!-- Dia 9 = 60% a 80% -->
+          <div class="g-bar hum" style="left:60%;width:18%">Backlog fase 1</div>
+        </div>
+      </div>
+
+      <!-- H-06 -->
+      <div class="g-row gw2" style="display:grid">
+        <div class="g-row-label" style="padding-left:.3em;gap:.4em">
+          <span class="g-id hum">H-06</span>
+          <span class="g-name">Critérios de aceite</span>
+          <span class="g-who">Humano</span>
+        </div>
+        <div style="position:relative;grid-column:2/7;display:flex;align-items:center">
+          <!-- Dia 9–10 = 60% a 100% -->
+          <div class="g-bar hum" style="left:60%;width:38%">≥85% acurácia · RAG eval</div>
+        </div>
+      </div>
+
+      <!-- IA-07 -->
+      <div class="g-row gw2" style="display:grid">
+        <div class="g-row-label" style="padding-left:.3em;gap:.4em">
+          <span class="g-id ai">IA-07</span>
+          <span class="g-name">Relatório de discovery</span>
+          <span class="g-who">Agente IA</span>
+        </div>
+        <div style="position:relative;grid-column:2/7;display:flex;align-items:center">
+          <!-- Dia 9–10 = 60% a 100% -->
+          <div class="g-bar ai" style="left:60%;width:38%">Handoff para sprint 1</div>
+        </div>
+      </div>
+
+      <!-- GATE 2 -->
+      <div class="g-row gw2" style="display:grid;background:var(--gate-light)">
+        <div class="g-row-label" style="padding-left:.3em;gap:.4em">
+          <span class="g-id gate">GATE 2</span>
+          <span class="g-name" style="color:var(--gate)">Discovery concluído · Sprint 1 inicia</span>
+        </div>
+        <div style="position:relative;grid-column:2/7;display:flex;align-items:center">
+          <div class="g-bar gate" style="left:90%;width:10%">▶ Fim sem. 2</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 4: ENTREGÁVEIS ════════════════════════════════════════ -->
+<section class="slide" id="s4">
+  <div class="slide-top">
+    <div class="s-top-title">Entregáveis consolidados</div>
+    <div class="s-top-right">12 artefatos · Gates 1 & 2</div>
+  </div>
+  <div class="slide-content" style="padding-top:clamp(.4rem,1vh,.8rem);padding-bottom:clamp(.4rem,1vh,.8rem)">
+    <div class="del-grid">
+
+      <div class="del-card">
+        <div class="del-top"><span class="del-id ai">IA-01</span><span class="del-title">Inventário documental</span></div>
+        <div class="del-output">1.250 docs com score de qualidade por dimensão</div>
+        <div class="del-feeds">→ alimenta IA-02, IA-03, H-03</div>
+      </div>
+
+      <div class="del-card">
+        <div class="del-top"><span class="del-id ai">IA-02</span><span class="del-title">Mapa de contradições</span></div>
+        <div class="del-output">Lista priorizada de versões conflitantes</div>
+        <div class="del-feeds">→ alimenta H-03, H-04</div>
+      </div>
+
+      <div class="del-card">
+        <div class="del-top"><span class="del-id ai">IA-03</span><span class="del-title">Grafo de dependências</span></div>
+        <div class="del-output">Referências cruzadas entre as 3 fontes + órfãos</div>
+        <div class="del-feeds">→ alimenta H-03, H-05</div>
+      </div>
+
+      <div class="del-card">
+        <div class="del-top"><span class="del-id ai">IA-04</span><span class="del-title">Ranking perguntas × cobertura</span></div>
+        <div class="del-output">Gaps documentais confirmados com criticidade</div>
+        <div class="del-feeds">→ alimenta H-04, H-05</div>
+      </div>
+
+      <div class="del-card">
+        <div class="del-top"><span class="del-id hum">H-03</span><span class="del-title">Inventário validado</span></div>
+        <div class="del-output">Inventário e conflitos corrigidos por humanos</div>
+        <div class="del-feeds">→ Gate 1</div>
+      </div>
+
+      <div class="del-card">
+        <div class="del-top"><span class="del-id ai">IA-05</span><span class="del-title">Roteiros de entrevista</span></div>
+        <div class="del-output">4 roteiros personalizados por área stakeholder</div>
+        <div class="del-feeds">→ alimenta H-04</div>
+      </div>
+
+      <div class="del-card">
+        <div class="del-top"><span class="del-id hum">H-04</span><span class="del-title">Registros das entrevistas</span></div>
+        <div class="del-output">Conflitos validados · guardiões identificados</div>
+        <div class="del-feeds">→ alimenta IA-07, H-05</div>
+      </div>
+
+      <div class="del-card">
+        <div class="del-top"><span class="del-id hum">H-05</span><span class="del-title">Backlog fase 1 (80/20)</span></div>
+        <div class="del-output">Escopo de ingestão fixo acordado com NovaTech</div>
+        <div class="del-feeds">→ Gate 2, Sprint 1</div>
+      </div>
+
+      <div class="del-card">
+        <div class="del-top"><span class="del-id hum">H-06</span><span class="del-title">Critérios de aceite</span></div>
+        <div class="del-output">≥85% acurácia · framework RAG · definição de done</div>
+        <div class="del-feeds">→ Gate 2, Sprint 1</div>
+      </div>
+
+      <div class="del-card">
+        <div class="del-top"><span class="del-id ai">IA-06</span><span class="del-title">Análise de qualidade profunda</span></div>
+        <div class="del-output">Esforço de higienização estimado por lote</div>
+        <div class="del-feeds">→ Sprint 1</div>
+      </div>
+
+      <div class="del-card" style="grid-column:1/3;border-color:var(--gate)">
+        <div class="del-top"><span class="del-id gate">IA-07</span><span class="del-title" style="color:var(--gate)">Relatório de discovery consolidado</span></div>
+        <div class="del-output" style="border-color:var(--gate);color:var(--text)">Artefato único de handoff: inventário final · conflitos resolvidos · backlog fase 1 · gaps · estimativas · riscos residuais</div>
+        <div class="del-feeds">→ Gate 2 · Sprint 1 pode iniciar</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const dots   = document.querySelectorAll('.dot');
+let current  = 0;
+
+function goTo(n) {
+  slides[current].classList.remove('active');
+  dots[current].classList.remove('active');
+  current = Math.max(0, Math.min(n, slides.length - 1));
+  slides[current].classList.add('active');
+  dots[current].classList.add('active');
+  slides[current].scrollIntoView({ behavior: 'smooth' });
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+  if (e.key === 'ArrowUp'   || e.key === 'ArrowLeft')                   { e.preventDefault(); goTo(current - 1); }
+});
+
+let startY = 0;
+document.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
+document.addEventListener('touchend',   e => {
+  const dy = startY - e.changedTouches[0].clientY;
+  if (Math.abs(dy) > 40) goTo(current + (dy > 0 ? 1 : -1));
+}, { passive: true });
+
+// Intersection observer to sync dots on manual scroll
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(en => {
+    if (en.isIntersecting) {
+      const idx = [...slides].indexOf(en.target);
+      dots.forEach(d => d.classList.remove('active'));
+      dots[idx].classList.add('active');
+      slides.forEach(s => s.classList.remove('active'));
+      en.target.classList.add('active');
+      current = idx;
+    }
+  });
+}, { threshold: 0.6 });
+slides.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
