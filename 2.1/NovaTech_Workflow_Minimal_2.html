@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workflow AI — NovaTech · DB1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Viewport base ─────────────────────────────────── */
+html,body{height:100%;overflow-x:hidden}
+html{scroll-snap-type:y mandatory;scroll-behavior:smooth}
+.slide{width:100vw;height:100vh;height:100dvh;overflow:hidden;scroll-snap-align:start;display:flex;flex-direction:column;position:relative}
+.slide-content{flex:1;display:flex;flex-direction:column;justify-content:center;max-height:100%;overflow:hidden;padding:var(--sp)}
+
+:root{
+  --title-size: clamp(1.8rem, 4.5vw, 3.8rem);
+  --h2-size:    clamp(1.1rem, 2.2vw, 1.75rem);
+  --h3-size:    clamp(0.85rem, 1.5vw, 1.15rem);
+  --body-size:  clamp(0.7rem, 1.2vw, 0.9rem);
+  --small-size: clamp(0.6rem, 0.85vw, 0.75rem);
+  --sp:         clamp(1.5rem, 5vw, 5rem);
+  --gap:        clamp(0.6rem, 1.5vw, 1.5rem);
+  --el:         clamp(0.3rem, 0.8vw, 0.8rem);
+
+  /* Swedish palette — warm off-white, charcoal, one accent */
+  --bg:      #F5F3EF;
+  --bg2:     #EDEAE4;
+  --bg3:     #E4E0D8;
+  --ink:     #1A1916;
+  --ink2:    #3D3B36;
+  --muted:   #8C8880;
+  --rule:    #D4CFC6;
+  --accent:  #2A52A0;   /* single blue — gates only */
+  --gate:    #2A52A0;
+  --gate-bg: #EBF0FA;
+  --red:     #B83232;
+  --red-bg:  #FAECEC;
+}
+@media(max-height:700px){:root{--sp:clamp(1rem,3vw,2.5rem);--title-size:clamp(1.4rem,3.5vw,2.4rem);--h2-size:clamp(0.9rem,1.8vw,1.35rem)}}
+@media(max-height:600px){:root{--sp:clamp(0.6rem,2vw,1.5rem);--body-size:clamp(0.62rem,1vw,0.82rem)}.nav-dots,.hint{display:none}}
+@media(max-height:500px){:root{--title-size:clamp(1.1rem,3vw,1.6rem);--h2-size:clamp(0.8rem,1.6vw,1.1rem)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.15s!important}html{scroll-behavior:auto}}
+
+/* ── Reset & base ─────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink)}
+
+/* ── Nav ─────────────────────────────────────────── */
+.nav-dots{position:fixed;right:clamp(1rem,2.5vw,2.5rem);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:200}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--rule);border:none;cursor:pointer;transition:all .3s}
+.dot.active{background:var(--ink);transform:scale(1.7)}
+.hint{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%);font-size:var(--small-size);color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.06em}
+
+/* ── Top rule bar ────────────────────────────────── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:clamp(0.7rem,1.5vh,1.2rem) var(--sp);border-bottom:1px solid var(--rule);flex-shrink:0}
+.tb-left{display:flex;align-items:center;gap:1em;font-size:var(--small-size);color:var(--muted);font-family:'DM Mono',monospace}
+.tb-right{font-size:var(--small-size);color:var(--muted);font-family:'DM Mono',monospace}
+.slide-no{color:var(--ink2);font-weight:500}
+
+/* ── Animations ──────────────────────────────────── */
+@keyframes fu{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fl{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}
+.slide.active .rv  {animation:fu .5s cubic-bezier(.22,1,.36,1) both}
+.slide.active .rv-l{animation:fl .5s cubic-bezier(.22,1,.36,1) both}
+.rv,.rv-l{opacity:0}
+.d1{animation-delay:.04s!important}.d2{animation-delay:.1s!important}.d3{animation-delay:.17s!important}.d4{animation-delay:.24s!important}.d5{animation-delay:.31s!important}.d6{animation-delay:.38s!important}.d7{animation-delay:.45s!important}.d8{animation-delay:.52s!important}.d9{animation-delay:.59s!important}
+
+/* ── Typography ───────────────────────────────────── */
+.title{font-size:var(--title-size);font-weight:300;line-height:1.08;letter-spacing:-.02em;color:var(--ink)}
+.title strong{font-weight:500}
+.h2{font-size:var(--h2-size);font-weight:400;color:var(--ink);line-height:1.25;letter-spacing:-.01em}
+.h3{font-size:var(--h3-size);font-weight:500;color:var(--ink2);line-height:1.3}
+.body{font-size:var(--body-size);color:var(--muted);line-height:1.65;font-weight:300}
+.label{font-family:'DM Mono',monospace;font-size:var(--small-size);color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.mono{font-family:'DM Mono',monospace}
+
+/* ── Tags / chips ─────────────────────────────────── */
+.tag{display:inline-block;font-family:'DM Mono',monospace;font-size:var(--small-size);padding:.25em .7em;border:1px solid var(--rule);border-radius:2px;color:var(--ink2);background:transparent;white-space:nowrap}
+.tag-gate{border-color:var(--gate);color:var(--gate);background:var(--gate-bg)}
+.tag-red {border-color:var(--red);color:var(--red);background:var(--red-bg)}
+
+/* ── Role avatar ──────────────────────────────────── */
+.av{width:clamp(22px,2.2vw,28px);height:clamp(22px,2.2vw,28px);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:clamp(0.5rem,0.8vw,0.65rem);font-weight:500;flex-shrink:0;border:1px solid var(--rule)}
+.av-tl{background:#E8EEF8;color:#2A52A0;border-color:#BDD0F0}
+.av-sr{background:#EEF2F8;color:#4A6FA5;border-color:#C8D8F0}
+.av-pl{background:#F0EEF8;color:#5A4A8A;border-color:#C8C0E8}
+.av-qa{background:#EAF4EE;color:#2A7A4A;border-color:#B8DCC4}
+.av-ps{background:#F8EEE8;color:#9A4A2A;border-color:#E8C8B0}
+.av-dm{background:#F8F4E8;color:#8A6A1A;border-color:#E0D0A0}
+
+/* ════════════════════════════════════════════════════
+   SLIDE 1 — CAPA
+═══════════════════════════════════════════════════ */
+#s1{background:var(--bg)}
+.cover-inner{display:flex;flex-direction:column;gap:var(--gap)}
+.cover-rule{width:clamp(2rem,5vw,5rem);height:1px;background:var(--ink)}
+.meta-row{display:flex;gap:.5em;flex-wrap:wrap;margin-top:.25em}
+.cover-footer{position:absolute;bottom:clamp(1.2rem,3vh,2.5rem);left:var(--sp);right:var(--sp);display:flex;justify-content:space-between;align-items:flex-end}
+.legend-list{display:flex;gap:clamp(.8rem,2vw,2rem);flex-wrap:wrap}
+.leg{display:flex;align-items:center;gap:.5em;font-size:var(--small-size);color:var(--muted)}
+.leg-line{width:1.2em;height:1px;background:var(--muted)}
+.leg-gate{background:var(--gate)}
+
+/* ════════════════════════════════════════════════════
+   SLIDE 2 — MATRIZ
+═══════════════════════════════════════════════════ */
+#s2{background:var(--bg)}
+.matrix{width:100%;border-collapse:collapse;font-size:var(--small-size)}
+.matrix th{font-family:'DM Mono',monospace;font-weight:400;font-size:clamp(0.52rem,0.75vw,0.68rem);color:var(--muted);padding:.5em .6em;text-align:left;border-bottom:1px solid var(--rule);letter-spacing:.05em;white-space:nowrap}
+.matrix td{padding:.55em .6em;border-bottom:1px solid var(--bg3);vertical-align:top;font-size:clamp(0.55rem,0.8vw,0.72rem);color:var(--ink2)}
+.matrix tr:last-child td{border-bottom:none}
+.matrix td:first-child{border-right:1px solid var(--rule);white-space:nowrap}
+.mx-role{display:flex;align-items:center;gap:.45em}
+.mx-cell-tools{display:flex;flex-direction:column;gap:.2em}
+.mx-tool{display:inline-block;font-family:'DM Mono',monospace;font-size:clamp(0.48rem,0.65vw,0.6rem);padding:.12em .45em;border:1px solid var(--rule);border-radius:2px;color:var(--ink2);background:var(--bg);white-space:nowrap;line-height:1.4}
+.mx-act{color:var(--muted);font-size:clamp(0.48rem,0.65vw,0.6rem);line-height:1.4;margin-top:.15em}
+.mx-gate-col{background:var(--gate-bg)!important}
+.mx-gate-marker{color:var(--gate);font-weight:500}
+.matrix th.phase-head{text-align:center}
+.matrix td.center-cell{text-align:center}
+
+/* ════════════════════════════════════════════════════
+   SLIDES 3–6 — GATES
+═══════════════════════════════════════════════════ */
+.gate-slide{background:var(--bg)}
+.gate-grid{display:grid;grid-template-columns:1fr 1.6fr;gap:clamp(1.5rem,3vw,3.5rem);align-items:start;height:100%}
+.gate-left{display:flex;flex-direction:column;gap:var(--gap);padding-right:clamp(1rem,2vw,2rem);border-right:1px solid var(--rule)}
+.gate-number{font-family:'DM Mono',monospace;font-size:clamp(3rem,8vw,7rem);font-weight:400;line-height:1;color:var(--bg3);letter-spacing:-.04em}
+.gate-transition{display:flex;align-items:center;gap:.5em;font-family:'DM Mono',monospace;font-size:var(--small-size)}
+.gate-arrow{color:var(--muted)}
+.gate-from{color:var(--muted)}
+.gate-to{color:var(--gate);font-weight:500}
+
+.gate-right{display:flex;flex-direction:column;gap:clamp(.6rem,1.2vh,1rem)}
+.section-label{font-family:'DM Mono',monospace;font-size:var(--small-size);color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.2em;padding-bottom:.3em;border-bottom:1px solid var(--rule)}
+.approver-row{display:flex;align-items:center;gap:.5em;margin-bottom:.2em}
+.approver-name{font-size:var(--body-size);font-weight:500;color:var(--ink)}
+.approver-note{font-size:var(--small-size);color:var(--muted)}
+
+.check-list{display:flex;flex-direction:column;gap:.4em}
+.check-item{display:grid;grid-template-columns:1em 1fr;gap:.4em;font-size:var(--body-size);color:var(--ink2);line-height:1.5;font-weight:300}
+.check-mark{color:var(--gate);font-size:.85em;margin-top:.15em}
+
+.time-row{display:flex;align-items:center;gap:.8em}
+.time-track{flex:1;height:2px;background:var(--bg3);border-radius:1px}
+.time-fill{height:100%;border-radius:1px;background:var(--gate)}
+.time-label{font-family:'DM Mono',monospace;font-size:var(--small-size);color:var(--ink2);white-space:nowrap;min-width:8em}
+
+.reject-block{border-left:2px solid var(--red);padding-left:.8em;margin-top:.2em}
+.reject-label{font-family:'DM Mono',monospace;font-size:var(--small-size);color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.25em}
+.reject-text{font-size:var(--body-size);color:var(--muted);line-height:1.55;font-weight:300}
+
+/* ════════════════════════════════════════════════════
+   SLIDE 7 — REGRAS
+═══════════════════════════════════════════════════ */
+#s7{background:var(--bg)}
+.rules-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:clamp(1rem,2vw,2rem)}
+.rule-item{display:flex;flex-direction:column;gap:.4em;padding-top:.8em;border-top:1px solid var(--rule)}
+.rule-num{font-family:'DM Mono',monospace;font-size:var(--small-size);color:var(--muted);letter-spacing:.05em}
+.rule-title{font-size:var(--h3-size);font-weight:500;color:var(--ink);line-height:1.25}
+.rule-body{font-size:var(--body-size);color:var(--muted);line-height:1.6;font-weight:300}
+.rule-item.critical{border-top-color:var(--red)}
+.rule-item.critical .rule-num{color:var(--red)}
+</style>
+</head>
+<body>
+
+<nav class="nav-dots" aria-label="Navegação">
+  <button class="dot active" onclick="go(0)" aria-label="Slide 1"></button>
+  <button class="dot" onclick="go(1)" aria-label="Slide 2"></button>
+  <button class="dot" onclick="go(2)" aria-label="Slide 3"></button>
+  <button class="dot" onclick="go(3)" aria-label="Slide 4"></button>
+  <button class="dot" onclick="go(4)" aria-label="Slide 5"></button>
+  <button class="dot" onclick="go(5)" aria-label="Slide 6"></button>
+  <button class="dot" onclick="go(6)" aria-label="Slide 7"></button>
+</nav>
+<p class="hint">↑ ↓ · espaço</p>
+
+<!-- ═══ SLIDE 1 — CAPA ═══════════════════════════════════════════ -->
+<section class="slide" id="s1">
+  <div class="slide-content">
+    <div class="cover-inner">
+      <div class="cover-rule rv d1"></div>
+      <div class="rv d2">
+        <p class="label" style="margin-bottom:.6em">NovaTech · DB1 Group · 2026</p>
+        <h1 class="title">Modelo de trabalho<br><strong>AI-augmented</strong></h1>
+      </div>
+      <p class="body rv d3" style="max-width:46ch">Workflow por papel e fase — ferramentas de IA em cada etapa, validation gates obrigatórios antes de avançar.</p>
+      <div class="meta-row rv d4">
+        <span class="tag">6 papéis</span>
+        <span class="tag">6 fases</span>
+        <span class="tag tag-gate">4 validation gates</span>
+        <span class="tag">TypeScript · Azure · GitHub</span>
+      </div>
+    </div>
+  </div>
+  <div class="cover-footer">
+    <div class="legend-list">
+      <span class="leg"><span class="leg-line"></span>Copilot</span>
+      <span class="leg"><span class="leg-line"></span>Claude</span>
+      <span class="leg"><span class="leg-line"></span>Cowork</span>
+      <span class="leg"><span class="leg-line"></span>Design</span>
+      <span class="leg"><span class="leg-line"></span>DevOps</span>
+      <span class="leg"><span class="leg-line leg-gate"></span>Validation gate</span>
+    </div>
+    <p class="mono" style="font-size:var(--small-size);color:var(--muted)">01 / 07</p>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 2 — MATRIZ ══════════════════════════════════════════ -->
+<section class="slide" id="s2">
+  <div class="topbar rv d1">
+    <div class="tb-left"><span class="slide-no">02</span> Matriz — papel × fase × ferramenta</div>
+    <div class="tb-right mono">coluna azul = gate obrigatório</div>
+  </div>
+  <div class="slide-content" style="padding-top:clamp(.4rem,1vh,.8rem);padding-bottom:clamp(.4rem,1vh,.8rem)">
+    <table class="matrix rv d2">
+      <thead>
+        <tr>
+          <th style="width:clamp(80px,12vw,120px)">Papel</th>
+          <th class="phase-head">Spec <span class="mx-gate-marker">⏸</span></th>
+          <th class="phase-head">Plan <span class="mx-gate-marker">⏸</span></th>
+          <th class="phase-head">Tasks <span class="mx-gate-marker">⏸</span></th>
+          <th class="phase-head">Implement <span class="mx-gate-marker">⏸</span></th>
+          <th class="phase-head">Review <span class="mx-gate-marker">⏸</span></th>
+          <th class="phase-head">Deploy</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="mx-role"><span class="av av-tl">TL</span> <span style="font-weight:500">Tech Lead</span></div></td>
+          <td class="mx-gate-col">
+            <div class="mx-cell-tools"><span class="mx-tool">Copilot</span><span class="mx-tool">Claude</span></div>
+            <div class="mx-act">Specs técnicas · skills · MCP setup <span class="mx-gate-marker">⏸</span></div>
+          </td>
+          <td>
+            <div class="mx-cell-tools"><span class="mx-tool">Claude</span></div>
+            <div class="mx-act">Estimativas · ordem técnica · DoD</div>
+          </td>
+          <td class="mx-gate-col">
+            <div class="mx-cell-tools"><span class="mx-tool">Claude</span></div>
+            <div class="mx-act">Decomposição histórias <span class="mx-gate-marker">⏸</span></div>
+          </td>
+          <td class="mx-gate-col">
+            <div class="mx-cell-tools"><span class="mx-tool">Copilot</span><span class="mx-tool">Claude</span></div>
+            <div class="mx-act">IaC Bicep · pair dev · <span class="mx-gate-marker">⏸ PRs</span></div>
+          </td>
+          <td class="mx-gate-col">
+            <div class="mx-cell-tools"><span class="mx-tool">Copilot</span></div>
+            <div class="mx-act">Code review · ADR check <span class="mx-gate-marker">⏸</span></div>
+          </td>
+          <td class="mx-gate-col">
+            <div class="mx-cell-tools"><span class="mx-tool">Claude</span></div>
+            <div class="mx-act">Checklist pré-prod <span class="mx-gate-marker">⏸</span></div>
+          </td>
+        </tr>
+        <tr>
+          <td><div class="mx-role"><span class="av av-sr">Sr</span> Dev Sênior</div></td>
+          <td style="color:var(--rule)">—</td>
+          <td style="color:var(--rule)">—</td>
+          <td><div class="mx-cell-tools"><span class="mx-tool">Copilot</span></div><div class="mx-act">Scaffold · tipos TS</div></td>
+          <td><div class="mx-cell-tools"><span class="mx-tool">Copilot</span><span class="mx-tool">Claude</span></div><div class="mx-act">API · Azure integr. · review Pleno</div></td>
+          <td><div class="mx-cell-tools"><span class="mx-tool">Copilot</span></div><div class="mx-act">Review PRs do Pleno</div></td>
+          <td><div class="mx-cell-tools"><span class="mx-tool">Copilot</span></div><div class="mx-act">CI/CD · smoke tests</div></td>
+        </tr>
+        <tr>
+          <td><div class="mx-role"><span class="av av-pl">Pl</span> Dev Pleno</div></td>
+          <td style="color:var(--rule)">—</td>
+          <td style="color:var(--rule)">—</td>
+          <td><div class="mx-cell-tools"><span class="mx-tool">Copilot</span></div><div class="mx-act">Ler spec · alinhar dúvidas TL</div></td>
+          <td><div class="mx-cell-tools"><span class="mx-tool">Copilot</span><span class="mx-tool">Claude</span></div><div class="mx-act">Implementação inline · testes unit.</div></td>
+          <td><div class="mx-act">Incorporar feedback · re-submit PR</div></td>
+          <td style="color:var(--rule)">—</td>
+        </tr>
+        <tr>
+          <td><div class="mx-role"><span class="av av-qa">QA</span> QA</div></td>
+          <td><div class="mx-cell-tools"><span class="mx-tool">Claude</span></div><div class="mx-act">Cenários falha na spec</div></td>
+          <td style="color:var(--rule)">—</td>
+          <td><div class="mx-cell-tools"><span class="mx-tool">Claude</span></div><div class="mx-act">Plano de teste por task</div></td>
+          <td><div class="mx-cell-tools"><span class="mx-tool">Claude</span></div><div class="mx-act">Testes acurácia RAG</div></td>
+          <td class="mx-gate-col"><div class="mx-cell-tools"><span class="mx-tool">Claude</span></div><div class="mx-act">Suite completa <span class="mx-gate-marker">⏸ ≥85%</span></div></td>
+          <td><div class="mx-cell-tools"><span class="mx-tool">Claude</span></div><div class="mx-act">Smoke tests · 24h monitor</div></td>
+        </tr>
+        <tr>
+          <td><div class="mx-role"><span class="av av-ps">PS</span> Product Spec.</div></td>
+          <td><div class="mx-cell-tools"><span class="mx-tool">Claude</span><span class="mx-tool">Design</span></div><div class="mx-act">Personas · wireframes · glossário</div></td>
+          <td><div class="mx-cell-tools"><span class="mx-tool">Claude</span></div><div class="mx-act">Priorização por valor</div></td>
+          <td style="color:var(--rule)">—</td>
+          <td style="color:var(--rule)">—</td>
+          <td class="mx-gate-col"><div class="mx-cell-tools"><span class="mx-tool">Design</span></div><div class="mx-act">Demo NovaTech <span class="mx-gate-marker">⏸</span></div></td>
+          <td style="color:var(--rule)">—</td>
+        </tr>
+        <tr>
+          <td><div class="mx-role"><span class="av av-dm">DM</span> Delivery Mgr</div></td>
+          <td><div class="mx-cell-tools"><span class="mx-tool">Cowork</span></div><div class="mx-act">Consolidar artefatos</div></td>
+          <td class="mx-gate-col"><div class="mx-cell-tools"><span class="mx-tool">Cowork</span></div><div class="mx-act">Sprint plan · 486h <span class="mx-gate-marker">⏸</span></div></td>
+          <td style="color:var(--rule)">—</td>
+          <td style="color:var(--rule)">—</td>
+          <td><div class="mx-cell-tools"><span class="mx-tool">Cowork</span></div><div class="mx-act">Relatório sprint</div></td>
+          <td class="mx-gate-col"><div class="mx-cell-tools"><span class="mx-tool">Cowork</span></div><div class="mx-act">Go-live NovaTech <span class="mx-gate-marker">⏸</span></div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 3 — GATE 1: Spec → Plan ═══════════════════════════ -->
+<section class="slide gate-slide" id="s3">
+  <div class="topbar rv d1">
+    <div class="tb-left"><span class="slide-no">03</span> <span class="tag tag-gate" style="font-size:var(--small-size)">⏸ Gate 1</span></div>
+    <div class="tb-right mono">Spec → Plan</div>
+  </div>
+  <div class="slide-content" style="padding-top:clamp(.6rem,1.5vh,1.2rem);padding-bottom:clamp(.6rem,1.5vh,1.2rem)">
+    <div class="gate-grid">
+
+      <div class="gate-left rv-l d2">
+        <div class="gate-number">01</div>
+        <div>
+          <h2 class="h2">Spec aprovada antes do Plan</h2>
+          <p class="body" style="margin-top:.5em">Nenhuma história é criada, estimada ou alocada antes que todas as specs técnicas estejam aprovadas. O plano gerado por IA se baseia na spec — se a spec estiver errada, o plano amplifica o erro.</p>
+        </div>
+        <div>
+          <div class="gate-transition" style="margin-bottom:.5em">
+            <span class="gate-from">Spec</span>
+            <span class="gate-arrow">→</span>
+            <span class="gate-to">Plan</span>
+          </div>
+          <div class="approver-row">
+            <span class="av av-tl">TL</span>
+            <span class="approver-name">Tech Lead</span>
+            <span class="approver-note">— obrigatório</span>
+          </div>
+          <div class="approver-row">
+            <span class="av av-ps">PS</span>
+            <span class="approver-name">Product Spec.</span>
+            <span class="approver-note">— funcional</span>
+          </div>
+        </div>
+        <div>
+          <div class="section-label">Tempo</div>
+          <div class="time-row">
+            <div class="time-track"><div class="time-fill" style="width:50%"></div></div>
+            <span class="time-label">1 dia por componente</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:var(--gap)">
+        <div class="rv d3">
+          <div class="section-label">O TL verifica</div>
+          <div class="check-list" style="margin-top:.4em">
+            <div class="check-item"><span class="check-mark">→</span><span>Spec cobre todos os casos de uso: pipeline, API, bot Teams, painel web</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Interfaces TypeScript e contratos de API definidos e sem ambiguidade</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Decisões coerentes com ADRs do discovery (ADR-0001 a ADR-0004)</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Estratégia de chunking e context budget explícitos na spec do pipeline RAG</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Skills do projeto criadas e disponíveis para devs antes de iniciar</span></div>
+          </div>
+        </div>
+        <div class="rv d4">
+          <div class="section-label">O PS verifica</div>
+          <div class="check-list" style="margin-top:.4em">
+            <div class="check-item"><span class="check-mark">→</span><span>Linguagem ubíqua consistente entre spec técnica e product spec</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Critérios de aceite funcionais cobrem os casos validados com NovaTech</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Wireframes aprovados referenciados nas specs de UI</span></div>
+          </div>
+        </div>
+        <div class="reject-block rv d5">
+          <div class="reject-label">Se reprovar</div>
+          <div class="reject-text">Spec retorna com comentários específicos. TL tem até 4h para dar feedback estruturado. Nova rodada de review em até 1 dia. Plan não abre até aprovação. DM é notificado para avaliar impacto no cronograma.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 4 — GATE 2: Tasks → Implement ═════════════════════ -->
+<section class="slide gate-slide" id="s4">
+  <div class="topbar rv d1">
+    <div class="tb-left"><span class="slide-no">04</span> <span class="tag tag-gate" style="font-size:var(--small-size)">⏸ Gate 2</span></div>
+    <div class="tb-right mono">Tasks IA → Implement</div>
+  </div>
+  <div class="slide-content" style="padding-top:clamp(.6rem,1.5vh,1.2rem);padding-bottom:clamp(.6rem,1.5vh,1.2rem)">
+    <div class="gate-grid">
+
+      <div class="gate-left rv-l d2">
+        <div class="gate-number">02</div>
+        <div>
+          <h2 class="h2">Tasks geradas por IA validadas antes do dev</h2>
+          <p class="body" style="margin-top:.5em">Claude decompõe histórias em tasks técnicas. Esse output é um rascunho — não uma instrução. O Tech Lead valida se a decomposição é coerente, completa e não cria débito técnico silencioso.</p>
+        </div>
+        <div>
+          <div class="gate-transition" style="margin-bottom:.5em">
+            <span class="gate-from">Tasks</span>
+            <span class="gate-arrow">→</span>
+            <span class="gate-to">Implement</span>
+          </div>
+          <div class="approver-row">
+            <span class="av av-tl">TL</span>
+            <span class="approver-name">Tech Lead</span>
+            <span class="approver-note">— obrigatório</span>
+          </div>
+          <div class="approver-row">
+            <span class="av av-qa">QA</span>
+            <span class="approver-name">QA</span>
+            <span class="approver-note">— cobertura de testes</span>
+          </div>
+        </div>
+        <div>
+          <div class="section-label">Tempo</div>
+          <div class="time-row">
+            <div class="time-track"><div class="time-fill" style="width:30%"></div></div>
+            <span class="time-label">4h por conjunto de tasks</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:var(--gap)">
+        <div class="rv d3">
+          <div class="section-label">O TL verifica</div>
+          <div class="check-list" style="margin-top:.4em">
+            <div class="check-item"><span class="check-mark">→</span><span>Cada task tem input e output claramente definidos — sem ambiguidade de escopo</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Dependências entre tasks explícitas e na ordem correta de execução</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Nenhuma task esconde complexidade que deveria estar em outra história</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Tasks do pipeline RAG contemplam chunking, embedding, indexação, retrieval e avaliação</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Estimativas geradas por IA são coerentes com a capacidade real do perfil alocado</span></div>
+          </div>
+        </div>
+        <div class="rv d4">
+          <div class="section-label">O QA verifica</div>
+          <div class="check-list" style="margin-top:.4em">
+            <div class="check-item"><span class="check-mark">→</span><span>Cada task tem ao menos um caso de teste vinculado no Azure DevOps antes de iniciar</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Tasks do RAG incluem cenário de teste de acurácia, não apenas teste unitário</span></div>
+          </div>
+        </div>
+        <div class="reject-block rv d5">
+          <div class="reject-label">Se reprovar</div>
+          <div class="reject-text">TL devolve a task com anotação do problema específico. Claude é re-invocado com o feedback como contexto. Dev não toca na task até a nova versão ser aprovada. Tasks com mais de 2 reproves são redesenhadas em sessão de pair com o TL.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 5 — GATE 3: Código → Merge ════════════════════════ -->
+<section class="slide gate-slide" id="s5">
+  <div class="topbar rv d1">
+    <div class="tb-left"><span class="slide-no">05</span> <span class="tag tag-gate" style="font-size:var(--small-size)">⏸ Gate 3</span></div>
+    <div class="tb-right mono">Código gerado → Merge</div>
+  </div>
+  <div class="slide-content" style="padding-top:clamp(.6rem,1.5vh,1.2rem);padding-bottom:clamp(.6rem,1.5vh,1.2rem)">
+    <div class="gate-grid">
+
+      <div class="gate-left rv-l d2">
+        <div class="gate-number">03</div>
+        <div>
+          <h2 class="h2">Code review antes do merge em main</h2>
+          <p class="body" style="margin-top:.5em">Todo código — incluindo o gerado ou sugerido por Copilot e Claude — passa por code review humano antes de entrar em main. O dev que abre o PR é responsável pelo código.</p>
+        </div>
+        <div>
+          <div class="gate-transition" style="margin-bottom:.5em">
+            <span class="gate-from">PR aberto</span>
+            <span class="gate-arrow">→</span>
+            <span class="gate-to">Merge</span>
+          </div>
+          <div class="approver-row">
+            <span class="av av-tl">TL</span>
+            <span class="approver-name">Tech Lead</span>
+            <span class="approver-note">— pipeline RAG, API core</span>
+          </div>
+          <div class="approver-row">
+            <span class="av av-sr">Sr</span>
+            <span class="approver-name">Dev Sênior</span>
+            <span class="approver-note">— demais componentes</span>
+          </div>
+        </div>
+        <div>
+          <div class="section-label">Tempo</div>
+          <div class="time-row">
+            <div class="time-track"><div class="time-fill" style="width:25%"></div></div>
+            <span class="time-label">4h úteis após abertura</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:var(--gap)">
+        <div class="rv d3">
+          <div class="section-label">O revisor verifica</div>
+          <div class="check-list" style="margin-top:.4em">
+            <div class="check-item"><span class="check-mark">→</span><span>Código lido e compreendido pelo dev antes do commit — sem código cego</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Copilot Review check passou: security patterns, type safety, naming conventions</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Testes unitários cobrem ≥80% das linhas adicionadas</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Nenhuma decisão arquitetural diverge de ADR sem novo ADR registrado no PR</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Context budget do RAG respeitado — sem extrapolação silenciosa dos 8K tokens de chunks</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Logs estruturados em pontos críticos de falha: retrieval vazio, timeout Azure OpenAI</span></div>
+          </div>
+        </div>
+        <div class="rv d4" style="padding:.7em .9em;border:1px solid var(--rule);border-radius:2px">
+          <div class="section-label" style="margin-bottom:.4em">Regra de ouro</div>
+          <div class="body" style="font-style:italic">"Todo código gerado por IA é lido e entendido antes do commit. O dev é responsável pelo que comita — não a ferramenta."</div>
+        </div>
+        <div class="reject-block rv d5">
+          <div class="reject-label">Se reprovar</div>
+          <div class="reject-text">PR retorna com comentários inline. Dev tem até 1 dia útil para corrigir. Segunda rodada em até 2h. Três reproves no mesmo PR → sessão obrigatória de pair review com TL para diagnosticar o problema raiz.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 6 — GATE 4: Testes → Deploy ══════════════════════ -->
+<section class="slide gate-slide" id="s6">
+  <div class="topbar rv d1">
+    <div class="tb-left"><span class="slide-no">06</span> <span class="tag tag-gate" style="font-size:var(--small-size)">⏸ Gate 4</span></div>
+    <div class="tb-right mono">Testes IA → Deploy</div>
+  </div>
+  <div class="slide-content" style="padding-top:clamp(.6rem,1.5vh,1.2rem);padding-bottom:clamp(.6rem,1.5vh,1.2rem)">
+    <div class="gate-grid">
+
+      <div class="gate-left rv-l d2">
+        <div class="gate-number">04</div>
+        <div>
+          <h2 class="h2">Testes validados antes do deploy em produção</h2>
+          <p class="body" style="margin-top:.5em">Testes gerados por IA são um ponto de partida, não uma garantia. O QA valida se a suíte cobre os cenários reais — especialmente os cenários de falha do RAG que o modelo pode não ter imaginado.</p>
+        </div>
+        <div>
+          <div class="gate-transition" style="margin-bottom:.5em">
+            <span class="gate-from">Testes</span>
+            <span class="gate-arrow">→</span>
+            <span class="gate-to">Deploy prod</span>
+          </div>
+          <div class="approver-row">
+            <span class="av av-qa">QA</span>
+            <span class="approver-name">QA</span>
+            <span class="approver-note">— assina relatório</span>
+          </div>
+          <div class="approver-row">
+            <span class="av av-tl">TL</span>
+            <span class="approver-name">TL + DM</span>
+            <span class="approver-note">— aprovação explícita</span>
+          </div>
+        </div>
+        <div>
+          <div class="section-label">Tempo</div>
+          <div class="time-row">
+            <div class="time-track"><div class="time-fill" style="width:60%"></div></div>
+            <span class="time-label">1 dia útil (execução completa)</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:var(--gap)">
+        <div class="rv d3">
+          <div class="section-label">O QA verifica</div>
+          <div class="check-list" style="margin-top:.4em">
+            <div class="check-item"><span class="check-mark">→</span><span>Cobertura unitária ≥80% em todos os componentes do sprint</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Acurácia RAG ≥85% no dataset de 200 perguntas reais do atendimento NovaTech</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Cenários de falha cobertos: retrieval vazio, doc obsoleto, timeout, conflito de versões</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Testes de integração passando: ingestão → retrieval → geração completos</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Zero bugs críticos (P1) abertos — bugs P2 documentados com workaround</span></div>
+          </div>
+        </div>
+        <div class="rv d4">
+          <div class="section-label">O TL + DM verificam</div>
+          <div class="check-list" style="margin-top:.4em">
+            <div class="check-item"><span class="check-mark">→</span><span>Relatório de testes assinado pelo QA disponível antes de qualquer aprovação</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Rollback plan documentado: reverter em &lt;30min</span></div>
+            <div class="check-item"><span class="check-mark">→</span><span>Azure Monitor configurado com alert se acurácia cair abaixo de 80% em produção</span></div>
+          </div>
+        </div>
+        <div class="reject-block rv d5">
+          <div class="reject-label">Se reprovar</div>
+          <div class="reject-text">Deploy bloqueado. QA abre bug com severidade e contexto. Dev tem até 1 dia para corrigir e re-submeter. Se acurácia RAG cair abaixo de 80% em staging → rollback imediato e análise de chunking.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 7 — REGRAS DE OURO ════════════════════════════════ -->
+<section class="slide" id="s7">
+  <div class="topbar rv d1">
+    <div class="tb-left"><span class="slide-no">07</span> Regras de ouro do time</div>
+    <div class="tb-right mono">inegociáveis desde o dia 1</div>
+  </div>
+  <div class="slide-content" style="padding-top:clamp(.6rem,1.5vh,1.2rem);padding-bottom:clamp(.6rem,1.5vh,1.2rem)">
+    <div class="rules-grid">
+      <div class="rule-item rv d2">
+        <div class="rule-num">01</div>
+        <div class="rule-title">IA acelera, humano aprova</div>
+        <div class="rule-body">Nenhuma fase avança sem aprovação humana explícita. Os 4 gates não são sugestões — são bloqueadores. IA gera rascunho; humano decide se o rascunho avança.</div>
+      </div>
+      <div class="rule-item rv d3">
+        <div class="rule-num">02</div>
+        <div class="rule-title">Dev assina o código que comita</div>
+        <div class="rule-body">Todo código gerado por Copilot ou Claude é lido e compreendido antes do commit. "A IA gerou" não é justificativa para bug em produção.</div>
+      </div>
+      <div class="rule-item rv d4">
+        <div class="rule-num">03</div>
+        <div class="rule-title">Divergência de ADR exige novo ADR</div>
+        <div class="rule-body">Se a implementação divergir de uma decisão do discovery, um novo ADR deve ser aberto no PR. Divergência silenciosa é débito técnico imediato.</div>
+      </div>
+      <div class="rule-item critical rv d5">
+        <div class="rule-num">04</div>
+        <div class="rule-title">Acurácia ≥85% não é aspiração</div>
+        <div class="rule-body">É condição de deploy. O QA tem autoridade para bloquear qualquer release que não atinja a taxa acordada. Não há override sem aprovação formal de TL + DM.</div>
+      </div>
+      <div class="rule-item critical rv d6">
+        <div class="rule-num">05</div>
+        <div class="rule-title">Sem código cego em produção</div>
+        <div class="rule-body">Nenhum bloco vai para main sem que dev autor e revisor tenham lido e entendido o que ele faz. Copilot suggestions são sugestões, não commits automáticos.</div>
+      </div>
+      <div class="rule-item critical rv d7">
+        <div class="rule-num">06</div>
+        <div class="rule-title">Task sem spec não entra em dev</div>
+        <div class="rule-body">Desenvolvimento não começa em task com escopo ambíguo. Se a spec não responde "o que entra" e "o que sai", ela volta para o TL. Dev com dúvida para e pergunta.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')];
+const dots=[...document.querySelectorAll('.dot')];
+let cur=0;
+
+function go(n){
+  n=Math.max(0,Math.min(n,slides.length-1));
+  slides[cur].classList.remove('active');
+  dots[cur].classList.remove('active');
+  cur=n;
+  slides[cur].classList.add('active');
+  dots[cur].classList.add('active');
+  slides[cur].scrollIntoView({behavior:'smooth'});
+}
+
+document.addEventListener('keydown',e=>{
+  if(['ArrowDown','ArrowRight',' '].includes(e.key)){e.preventDefault();go(cur+1);}
+  if(['ArrowUp','ArrowLeft'].includes(e.key)){e.preventDefault();go(cur-1);}
+});
+let ty=0;
+document.addEventListener('touchstart',e=>{ty=e.touches[0].clientY;},{passive:true});
+document.addEventListener('touchend',e=>{
+  const d=ty-e.changedTouches[0].clientY;
+  if(Math.abs(d)>40)go(cur+(d>0?1:-1));
+},{passive:true});
+
+const obs=new IntersectionObserver(en=>{
+  en.forEach(e=>{
+    if(e.isIntersecting){
+      const i=slides.indexOf(e.target);
+      slides.forEach(s=>s.classList.remove('active'));
+      dots.forEach(d=>d.classList.remove('active'));
+      e.target.classList.add('active');
+      if(dots[i])dots[i].classList.add('active');
+      cur=i;
+    }
+  });
+},{threshold:0.6});
+slides.forEach(s=>obs.observe(s));
+go(0);
+</script>
+</body>
+</html>
