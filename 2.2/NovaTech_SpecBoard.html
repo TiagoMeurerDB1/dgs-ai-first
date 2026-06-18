@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spec Board — NovaTech Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F5F3EF;--bg2:#EDEAE4;--bg3:#E2DED5;
+  --ink:#1A1916;--ink2:#3D3B36;--muted:#8C8880;--rule:#D4CFC6;
+  --blue:#1D4ED8;--blue-bg:#EEF3FD;--blue-lt:#DBEAFE;
+  --amber:#B45309;--amber-bg:#FEF3C7;
+  --green:#166534;--green-bg:#DCFCE7;--green-lt:#BBF7D0;
+  --red:#B91C1C;--red-bg:#FEE2E2;
+  --purple:#6D28D9;--purple-bg:#EDE9FE;
+  --teal:#0F766E;--teal-bg:#CCFBF1;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:auto}
+.mono{font-family:'DM Mono',monospace}
+
+/* ── Header ─────────────────────────────────────────── */
+.header{padding:1.2rem 2rem;border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem;position:sticky;top:0;background:var(--bg);z-index:100}
+.header-left{display:flex;flex-direction:column;gap:.2rem}
+.header-title{font-size:1.1rem;font-weight:500;color:var(--ink)}
+.header-sub{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted)}
+.header-right{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.filter-btn{font-family:'DM Mono',monospace;font-size:.65rem;padding:.25em .7em;border-radius:2px;border:1px solid var(--rule);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s}
+.filter-btn.active,.filter-btn:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.legend{display:flex;gap:.8rem;flex-wrap:wrap;align-items:center}
+.leg{display:flex;align-items:center;gap:.35rem;font-size:.65rem;color:var(--muted)}
+.leg-sq{width:8px;height:8px;border-radius:1px}
+
+/* ── Stats row ────────────────────────────────────────── */
+.stats-row{display:flex;gap:.5rem;padding:.8rem 2rem;border-bottom:1px solid var(--rule);overflow-x:auto}
+.stat-pill{display:flex;flex-direction:column;align-items:center;padding:.4rem .9rem;border-radius:3px;border:1px solid var(--rule);min-width:80px;flex-shrink:0}
+.stat-num{font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:500;line-height:1}
+.stat-label{font-size:.6rem;color:var(--muted);margin-top:.2rem;text-align:center;line-height:1.3}
+
+/* ── Board layout ────────────────────────────────────── */
+.board{display:flex;gap:0;padding:1.2rem 1.5rem;overflow-x:auto;min-height:calc(100vh - 140px);align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:.5rem;min-width:clamp(190px,18vw,240px);flex-shrink:0}
+.col-head{padding:.5rem .7rem;display:flex;flex-direction:column;gap:.25rem;position:sticky;top:0}
+.col-title{font-size:.8rem;font-weight:500;color:var(--ink2)}
+.col-meta{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted)}
+.col-count{display:inline-block;font-family:'DM Mono',monospace;font-size:.6rem;padding:.1em .45em;border-radius:2px;background:var(--bg3);color:var(--muted);margin-left:.3em}
+.col-rule{height:2px;border-radius:1px;margin-bottom:.3rem}
+.col-body{display:flex;flex-direction:column;gap:.5rem}
+
+/* column color accents */
+.col-rascunho .col-rule{background:var(--rule)}
+.col-revisao  .col-rule{background:var(--amber)}
+.col-aprovada .col-rule{background:var(--blue)}
+.col-impl     .col-rule{background:var(--purple)}
+.col-validada .col-rule{background:var(--green)}
+
+/* col separator */
+.col-sep{width:1px;background:var(--rule);flex-shrink:0;margin:0 .5rem;align-self:stretch;opacity:.5}
+
+/* ── Cards ─────────────────────────────────────────────── */
+.card{background:var(--bg);border:1px solid var(--rule);border-radius:4px;padding:.7rem .8rem;cursor:pointer;transition:box-shadow .15s,border-color .15s;display:flex;flex-direction:column;gap:.45rem}
+.card:hover{border-color:var(--muted);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.card.selected{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink)}
+.card-top{display:flex;align-items:center;justify-content:space-between;gap:.3rem}
+.card-id{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted)}
+.card-title{font-size:.78rem;font-weight:500;color:var(--ink);line-height:1.3}
+.card-slug{font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted);margin-top:-.1rem}
+.card-layers{display:flex;gap:.25rem;flex-wrap:wrap}
+.layer-chip{font-family:'DM Mono',monospace;font-size:.55rem;padding:.12em .45em;border-radius:2px;border:1px solid;white-space:nowrap}
+.lc-ok  {border-color:#BBF7D0;background:#F0FDF4;color:#166534}
+.lc-rev {border-color:#FCD34D;background:#FFFBEB;color:#92400E}
+.lc-no  {border-color:var(--rule);background:var(--bg2);color:var(--muted)}
+.lc-na  {border-color:var(--rule);background:transparent;color:var(--bg3)}
+.card-footer{display:flex;align-items:center;justify-content:space-between;gap:.3rem;padding-top:.3rem;border-top:1px solid var(--bg3)}
+.card-owner{display:flex;align-items:center;gap:.3rem;font-size:.6rem;color:var(--muted)}
+.av-sm{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.5rem;font-weight:500;border:1px solid var(--rule);flex-shrink:0}
+.av-ps{background:#FEF3C7;color:#92400E;border-color:#FCD34D}
+.av-tl{background:#DBEAFE;color:#1D4ED8;border-color:#93C5FD}
+.av-sr{background:#EDE9FE;color:#6D28D9;border-color:#C4B5FD}
+.av-pl{background:#F3F4F6;color:#374151;border-color:#D1D5DB}
+.av-qa{background:#D1FAE5;color:#065F46;border-color:#6EE7B7}
+.card-gate{font-family:'DM Mono',monospace;font-size:.55rem;padding:.1em .4em;border-radius:2px;border:1px solid}
+.gate-pending{border-color:var(--amber);color:var(--amber);background:var(--amber-bg)}
+.gate-ok     {border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.gate-none   {border-color:var(--rule);color:var(--muted);background:transparent}
+.card-priority{font-family:'DM Mono',monospace;font-size:.55rem;padding:.1em .4em;border-radius:2px}
+.p-high{background:#FEE2E2;color:#991B1B}
+.p-med {background:#FEF3C7;color:#92400E}
+.p-low {background:#F3F4F6;color:#6B7280}
+
+/* ── Detail panel ─────────────────────────────────────── */
+.panel-overlay{display:none;position:fixed;inset:0;background:rgba(26,25,22,.35);z-index:200;backdrop-filter:blur(2px)}
+.panel-overlay.open{display:block}
+.panel{position:fixed;right:0;top:0;bottom:0;width:clamp(300px,38vw,480px);background:var(--bg);border-left:1px solid var(--rule);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s cubic-bezier(.22,1,.36,1);z-index:201;overflow:hidden}
+.panel.open{transform:translateX(0)}
+.panel-top{padding:1rem 1.2rem;border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.panel-close{background:none;border:none;cursor:pointer;color:var(--muted);font-size:1.1rem;padding:.2rem;line-height:1}
+.panel-body{overflow-y:auto;flex:1;padding:1rem 1.2rem;display:flex;flex-direction:column;gap:1rem}
+.p-section{display:flex;flex-direction:column;gap:.4rem}
+.p-label{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;padding-bottom:.3rem;border-bottom:1px solid var(--rule)}
+.p-value{font-size:.78rem;color:var(--ink2);line-height:1.5;font-weight:300}
+.p-chips{display:flex;gap:.3rem;flex-wrap:wrap}
+.p-chip{font-family:'DM Mono',monospace;font-size:.6rem;padding:.2em .55em;border-radius:2px;border:1px solid var(--rule);color:var(--ink2)}
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-item{display:grid;grid-template-columns:1.2rem 1fr;gap:.4rem;align-items:start;padding:.4rem 0}
+.tl-item:not(:last-child){border-bottom:1px solid var(--bg3)}
+.tl-dot{width:8px;height:8px;border-radius:50%;border:1.5px solid;margin-top:.25rem}
+.tl-ok  {background:var(--green);border-color:var(--green)}
+.tl-cur {background:var(--amber);border-color:var(--amber)}
+.tl-fut {background:transparent;border-color:var(--rule)}
+.tl-body{display:flex;flex-direction:column;gap:.1rem}
+.tl-stage{font-size:.72rem;font-weight:400;color:var(--ink2)}
+.tl-meta{font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted)}
+.checklist{display:flex;flex-direction:column;gap:.3rem}
+.cl-item{display:flex;align-items:flex-start;gap:.4rem;font-size:.72rem;color:var(--ink2);line-height:1.45;font-weight:300}
+.cl-box{width:12px;height:12px;border-radius:2px;border:1px solid var(--rule);flex-shrink:0;margin-top:.15rem;display:flex;align-items:center;justify-content:center;font-size:.55rem}
+.cl-box.done{background:var(--green);border-color:var(--green);color:#fff}
+.gmud-row{display:flex;align-items:center;justify-content:space-between;padding:.4rem .6rem;background:var(--bg2);border-radius:3px;border:1px solid var(--rule)}
+.gmud-key{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted)}
+.gmud-val{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--ink2)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-title">Spec Board — NovaTech Assistant</div>
+    <div class="header-sub">db1/novatech-assistant · fase de estruturação · Maio 2026</div>
+  </div>
+  <div class="header-right">
+    <div style="display:flex;gap:.3rem">
+      <button class="filter-btn active" onclick="filterBy('all',this)">Todos</button>
+      <button class="filter-btn" onclick="filterBy('ps',this)">PS</button>
+      <button class="filter-btn" onclick="filterBy('tl',this)">TL</button>
+      <button class="filter-btn" onclick="filterBy('gate',this)">Gate pendente</button>
+    </div>
+    <div class="legend">
+      <span class="leg"><span class="leg-sq" style="background:var(--green)"></span>Requirements</span>
+      <span class="leg"><span class="leg-sq" style="background:var(--blue)"></span>Plan</span>
+      <span class="leg"><span class="leg-sq" style="background:var(--purple)"></span>Tasks</span>
+    </div>
+  </div>
+</div>
+
+<div class="stats-row" id="stats-row"></div>
+
+<div class="board" id="board"></div>
+
+<div class="panel-overlay" id="overlay" onclick="closePanel()"></div>
+<div class="panel" id="panel">
+  <div class="panel-top">
+    <div id="panel-title" style="font-size:.85rem;font-weight:500"></div>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="panel-body" id="panel-body"></div>
+</div>
+
+<script>
+const COLS = [
+  { id:'rascunho', label:'Rascunho',        meta:'criação da spec',          gate:'Checkpoint 1 — req→plan', cls:'col-rascunho' },
+  { id:'revisao',  label:'Em Revisão',       meta:'aguardando aprovação',     gate:'Checkpoint pendente',      cls:'col-revisao'  },
+  { id:'aprovada', label:'Aprovada',         meta:'pronta para implementar',  gate:'Checkpoint 2 — plan→tasks',cls:'col-aprovada'  },
+  { id:'impl',     label:'Em Implementação', meta:'dev em andamento',         gate:'Checkpoint 3 — tasks→dev', cls:'col-impl'      },
+  { id:'validada', label:'Validada',         meta:'QA sign-off',              gate:'Gate QA — deploy',         cls:'col-validada'  },
+];
+
+const MODULES = [
+  {
+    id:'M1', slug:'pipeline-ingestao', title:'Pipeline de Ingestão',
+    desc:'Extração, chunking, embedding e indexação de 847 documentos (PDF, DOCX, XLSX, HTML) no Azure AI Search.',
+    col:'rascunho', priority:'high',
+    owners:{ req:'PS', plan:'TL', tasks:'Sr' },
+    layers:{ req:'no', plan:'no', tasks:'no' },
+    gate:'pending',
+    deps:['Azure AI Search', 'Azure Document Intelligence', 'Azure OpenAI (embeddings)'],
+    adrs:['ADR-0001','ADR-0002','ADR-0004'],
+    gmud:'—',
+    checkpoints:[
+      {done:false,label:'Requirements rascunho — PS'},
+      {done:false,label:'Gate 1: TL aprova requirements'},
+      {done:false,label:'Plan rascunho — TL'},
+      {done:false,label:'Gate 2: PS + Dev Sr aprovam plan'},
+      {done:false,label:'Tasks rascunho — Dev Sr + Copilot'},
+      {done:false,label:'Gate 3: TL + QA aprovam tasks'},
+    ],
+    notes:'Módulo crítico — base de tudo. Problemas de chunking em tabelas identificados no protótipo (ADR-0004). Prioridade 1 no backlog.',
+    timeline:[
+      {stage:'Rascunho',meta:'início: Maio 2026',state:'cur'},
+      {stage:'Em Revisão',meta:'—',state:'fut'},
+      {stage:'Aprovada',meta:'—',state:'fut'},
+      {stage:'Em Implementação',meta:'—',state:'fut'},
+      {stage:'Validada',meta:'—',state:'fut'},
+    ]
+  },
+  {
+    id:'M2', slug:'query-endpoint', title:'API de Busca (Query)',
+    desc:'Azure Function HTTP que recebe pergunta do atendente, executa retrieval no AI Search e geração via GPT-4o, retornando resposta com fonte.',
+    col:'rascunho', priority:'high',
+    owners:{ req:'PS', plan:'TL', tasks:'Sr' },
+    layers:{ req:'no', plan:'no', tasks:'no' },
+    gate:'pending',
+    deps:['Azure Functions','Azure AI Search','Azure OpenAI (GPT-4o)','src/services/search.ts','src/services/completion.ts'],
+    adrs:['ADR-0001','ADR-0002','ADR-0003'],
+    gmud:'—',
+    checkpoints:[
+      {done:false,label:'Requirements rascunho — PS'},
+      {done:false,label:'Gate 1: TL aprova requirements'},
+      {done:false,label:'Plan rascunho — TL'},
+      {done:false,label:'Gate 2: PS + Dev Sr aprovam plan'},
+      {done:false,label:'Tasks rascunho — Dev Sr + Copilot'},
+      {done:false,label:'Gate 3: TL + QA aprovam tasks'},
+    ],
+    notes:'Context budget: ~4K system prompt + ~8K chunks (5×1.500 tokens) + pergunta + histórico 3 turnos. Política de docs contraditórios via metadado de vigência.',
+    timeline:[
+      {stage:'Rascunho',meta:'início: Maio 2026',state:'cur'},
+      {stage:'Em Revisão',meta:'—',state:'fut'},
+      {stage:'Aprovada',meta:'—',state:'fut'},
+      {stage:'Em Implementação',meta:'—',state:'fut'},
+      {stage:'Validada',meta:'—',state:'fut'},
+    ]
+  },
+  {
+    id:'M3', slug:'feedback-api', title:'API de Feedback',
+    desc:'Endpoint para atendente reportar resposta incorreta. Registra no Cosmos DB para análise de qualidade e re-avaliação do RAG.',
+    col:'rascunho', priority:'med',
+    owners:{ req:'PS', plan:'TL', tasks:'Pl' },
+    layers:{ req:'no', plan:'no', tasks:'no' },
+    gate:'pending',
+    deps:['Azure Functions','Cosmos DB','src/functions/feedback/'],
+    adrs:['ADR-0001'],
+    gmud:'—',
+    checkpoints:[
+      {done:false,label:'Requirements rascunho — PS'},
+      {done:false,label:'Gate 1: TL aprova requirements'},
+      {done:false,label:'Plan rascunho — TL'},
+      {done:false,label:'Gate 2: PS + Dev Sr aprovam plan'},
+      {done:false,label:'Tasks rascunho — Dev Pl + Copilot'},
+      {done:false,label:'Gate 3: TL + QA aprovam tasks'},
+    ],
+    notes:'Módulo mais simples tecnicamente. Boa task de onboarding para o Dev Pleno. Depende de M2 (query-endpoint) estar validado para integração.',
+    timeline:[
+      {stage:'Rascunho',meta:'início: Maio 2026',state:'cur'},
+      {stage:'Em Revisão',meta:'—',state:'fut'},
+      {stage:'Aprovada',meta:'—',state:'fut'},
+      {stage:'Em Implementação',meta:'—',state:'fut'},
+      {stage:'Validada',meta:'—',state:'fut'},
+    ]
+  },
+  {
+    id:'M4', slug:'teams-bot', title:'Bot do Teams',
+    desc:'Bot conversacional no Microsoft Teams via Bot Framework. Adaptive Cards para resposta com fonte e botão de feedback.',
+    col:'rascunho', priority:'high',
+    owners:{ req:'PS', plan:'TL', tasks:'Pl' },
+    layers:{ req:'no', plan:'no', tasks:'no' },
+    gate:'pending',
+    deps:['Bot Framework SDK','Microsoft Teams','src/bot/','src/bot/cards/'],
+    adrs:['ADR-0001'],
+    gmud:'—',
+    checkpoints:[
+      {done:false,label:'Requirements rascunho — PS'},
+      {done:false,label:'Gate 1: TL aprova requirements'},
+      {done:false,label:'Plan rascunho — TL'},
+      {done:false,label:'Gate 2: PS + Dev Sr aprovam plan'},
+      {done:false,label:'Tasks rascunho — Dev Pl + Copilot'},
+      {done:false,label:'Gate 3: TL + QA aprovam tasks'},
+    ],
+    notes:'Interface principal dos atendentes NovaTech. Wireframes necessários antes de plan.md. Claude Design acionado pelo PS nesta fase.',
+    timeline:[
+      {stage:'Rascunho',meta:'início: Maio 2026',state:'cur'},
+      {stage:'Em Revisão',meta:'—',state:'fut'},
+      {stage:'Aprovada',meta:'—',state:'fut'},
+      {stage:'Em Implementação',meta:'—',state:'fut'},
+      {stage:'Validada',meta:'—',state:'fut'},
+    ]
+  },
+  {
+    id:'M5', slug:'painel-web', title:'Painel Web',
+    desc:'Dashboard React com métricas de uso, histórico de consultas, acurácia do assistente e visualização de feedbacks.',
+    col:'rascunho', priority:'low',
+    owners:{ req:'PS', plan:'TL', tasks:'Pl' },
+    layers:{ req:'no', plan:'no', tasks:'no' },
+    gate:'none',
+    deps:['React','src/web/','Azure Functions (API)'],
+    adrs:['ADR-0001'],
+    gmud:'—',
+    checkpoints:[
+      {done:false,label:'Requirements rascunho — PS'},
+      {done:false,label:'Gate 1: TL aprova requirements'},
+      {done:false,label:'Plan rascunho — TL'},
+      {done:false,label:'Gate 2: PS + Dev Sr aprovam plan'},
+      {done:false,label:'Tasks rascunho — Dev Pl + Copilot'},
+      {done:false,label:'Gate 3: TL + QA aprovam tasks'},
+    ],
+    notes:'Prioridade mais baixa — não é bloqueante para go-live com o Teams. Pode ser entregue em fase 2 se necessário.',
+    timeline:[
+      {stage:'Rascunho',meta:'início: Maio 2026',state:'cur'},
+      {stage:'Em Revisão',meta:'—',state:'fut'},
+      {stage:'Aprovada',meta:'—',state:'fut'},
+      {stage:'Em Implementação',meta:'—',state:'fut'},
+      {stage:'Validada',meta:'—',state:'fut'},
+    ]
+  }
+];
+
+const priorityMap = { high:{label:'Alta',cls:'p-high'}, med:{label:'Média',cls:'p-med'}, low:{label:'Baixa',cls:'p-low'} };
+const layerLabel = { req:'REQ', plan:'PLAN', tasks:'TASKS' };
+const avMap = { PS:'av-ps', TL:'av-tl', Sr:'av-sr', Pl:'av-pl', QA:'av-qa' };
+
+let activeFilter = 'all';
+let modules = JSON.parse(JSON.stringify(MODULES));
+
+function layerChipClass(state) {
+  if(state==='ok') return 'lc-ok';
+  if(state==='rev') return 'lc-rev';
+  if(state==='no') return 'lc-no';
+  return 'lc-na';
+}
+
+function buildCard(m) {
+  const pr = priorityMap[m.priority];
+  const gateClass = m.gate==='pending' ? 'gate-pending' : m.gate==='ok' ? 'gate-ok' : 'gate-none';
+  const gateLabel = m.gate==='pending' ? '⏸ gate pendente' : m.gate==='ok' ? '✓ gate ok' : '—';
+
+  // Filter logic
+  const ownerStr = Object.values(m.owners).join(' ');
+  if(activeFilter==='ps' && !ownerStr.includes('PS')) return null;
+  if(activeFilter==='tl' && !ownerStr.includes('TL')) return null;
+  if(activeFilter==='gate' && m.gate!=='pending') return null;
+
+  const div = document.createElement('div');
+  div.className='card';
+  div.dataset.id=m.id;
+  div.innerHTML=`
+    <div class="card-top">
+      <span class="card-id mono">${m.id}</span>
+      <span class="card-priority ${pr.cls}">${pr.label}</span>
+    </div>
+    <div class="card-title">${m.title}</div>
+    <div class="card-slug mono">specs/${m.slug}/</div>
+    <div class="card-layers">
+      ${Object.entries(m.layers).map(([k,v])=>`<span class="layer-chip ${layerChipClass(v)}">${layerLabel[k]}</span>`).join('')}
+    </div>
+    <div class="card-footer">
+      <div class="card-owner">
+        <span class="av-sm ${avMap[m.owners.req]||''}">PS</span>
+        <span class="av-sm ${avMap[m.owners.plan]||''}">TL</span>
+        <span style="margin-left:.1rem">${m.owners.req} · ${m.owners.plan}</span>
+      </div>
+      <span class="card-gate ${gateClass}">${gateLabel}</span>
+    </div>
+  `;
+  div.addEventListener('click',()=>openPanel(m));
+  return div;
+}
+
+function renderBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML='';
+  COLS.forEach((col,ci)=>{
+    const colEl = document.createElement('div');
+    colEl.className=`col ${col.cls}`;
+    const cards = modules.filter(m=>m.col===col.id);
+    const visible = cards.map(m=>buildCard(m)).filter(Boolean);
+    colEl.innerHTML=`
+      <div class="col-head">
+        <div><span class="col-title">${col.label}</span><span class="col-count">${visible.length}</span></div>
+        <div class="col-meta mono">${col.meta}</div>
+        <div class="col-rule"></div>
+      </div>
+      <div class="col-body" id="body-${col.id}"></div>
+    `;
+    visible.forEach(c=>colEl.querySelector('.col-body').appendChild(c));
+    board.appendChild(colEl);
+    if(ci<COLS.length-1){
+      const sep=document.createElement('div');sep.className='col-sep';
+      board.appendChild(sep);
+    }
+  });
+  renderStats();
+}
+
+function renderStats(){
+  const row=document.getElementById('stats-row');
+  row.innerHTML='';
+  const total=modules.length;
+  const byCol={};
+  COLS.forEach(c=>byCol[c.id]=modules.filter(m=>m.col===c.id).length);
+  const gated=modules.filter(m=>m.gate==='pending').length;
+  const colors={rascunho:'var(--muted)',revisao:'var(--amber)',aprovada:'var(--blue)',impl:'var(--purple)',validada:'var(--green)'};
+  [
+    {label:'Total módulos',val:total,color:'var(--ink)'},
+    ...COLS.map(c=>({label:c.label,val:byCol[c.id],color:colors[c.id]})),
+    {label:'Gates pendentes',val:gated,color:'var(--amber)'},
+  ].forEach(s=>{
+    const p=document.createElement('div');
+    p.className='stat-pill';
+    p.innerHTML=`<span class="stat-num" style="color:${s.color}">${s.val}</span><span class="stat-label">${s.label}</span>`;
+    row.appendChild(p);
+  });
+}
+
+function filterBy(f,btn){
+  activeFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderBoard();
+}
+
+function openPanel(m){
+  const p=document.getElementById('panel');
+  const o=document.getElementById('overlay');
+  document.getElementById('panel-title').textContent=`${m.id} — ${m.title}`;
+  const pr=priorityMap[m.priority];
+  document.getElementById('panel-body').innerHTML=`
+    <div class="p-section">
+      <div class="p-label">Módulo</div>
+      <div class="p-value"><strong>${m.title}</strong></div>
+      <div class="p-value" style="margin-top:.2rem;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted)">specs/${m.slug}/</div>
+    </div>
+    <div class="p-section">
+      <div class="p-label">Descrição</div>
+      <div class="p-value">${m.desc}</div>
+    </div>
+    <div class="p-section">
+      <div class="p-label">Status dos layers</div>
+      <div class="p-chips">
+        ${Object.entries(m.layers).map(([k,v])=>`<span class="p-chip ${layerChipClass(v)}">${layerLabel[k]}: ${v==='ok'?'Aprovado':v==='rev'?'Em revisão':v==='no'?'Não iniciado':'N/A'}</span>`).join('')}
+      </div>
+    </div>
+    <div class="p-section">
+      <div class="p-label">Responsáveis</div>
+      <div style="display:flex;flex-direction:column;gap:.3rem">
+        ${[['requirements.md',m.owners.req],['plan.md',m.owners.plan],['tasks.md',m.owners.tasks]].map(([f,o])=>`
+          <div style="display:flex;align-items:center;gap:.4rem;font-size:.72rem;">
+            <span class="av-sm ${avMap[o]||''}">${o}</span>
+            <span style="color:var(--ink2)">${f}</span>
+            <span style="color:var(--muted);font-family:'DM Mono',monospace;font-size:.6rem">→ ${o}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="p-section">
+      <div class="p-label">Checkpoints SDD</div>
+      <div class="checklist">
+        ${m.checkpoints.map(c=>`<div class="cl-item"><div class="cl-box ${c.done?'done':''}">${c.done?'✓':''}</div><span>${c.label}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="p-section">
+      <div class="p-label">Timeline</div>
+      <div class="timeline">
+        ${m.timeline.map(t=>`
+          <div class="tl-item">
+            <div class="tl-dot tl-${t.state}"></div>
+            <div class="tl-body">
+              <div class="tl-stage" style="font-weight:${t.state==='cur'?'500':'300'};color:${t.state==='fut'?'var(--muted)':'var(--ink)'}">${t.stage}</div>
+              <div class="tl-meta">${t.meta}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="p-section">
+      <div class="p-label">Dependências técnicas</div>
+      <div class="p-chips">${m.deps.map(d=>`<span class="p-chip">${d}</span>`).join('')}</div>
+    </div>
+    <div class="p-section">
+      <div class="p-label">ADRs referenciados</div>
+      <div class="p-chips">${m.adrs.map(a=>`<span class="p-chip">${a}</span>`).join('')}</div>
+    </div>
+    <div class="p-section">
+      <div class="p-label">GMUD</div>
+      <div class="gmud-row"><span class="gmud-key">ID</span><span class="gmud-val">${m.gmud}</span></div>
+    </div>
+    <div class="p-section">
+      <div class="p-label">Notas</div>
+      <div class="p-value">${m.notes}</div>
+    </div>
+    <div class="p-section">
+      <div class="p-label">Mover para</div>
+      <div style="display:flex;gap:.3rem;flex-wrap:wrap">
+        ${COLS.map(c=>c.id!==m.col?`<button onclick="moveCard('${m.id}','${c.id}')" style="font-family:'DM Mono',monospace;font-size:.6rem;padding:.25em .65em;border-radius:2px;border:1px solid var(--rule);background:var(--bg2);color:var(--ink2);cursor:pointer">${c.label}</button>`:'').join('')}
+      </div>
+    </div>
+  `;
+  p.classList.add('open');
+  o.classList.add('open');
+}
+
+function moveCard(id,col){
+  const m=modules.find(x=>x.id===id);
+  if(m){m.col=col;renderBoard();}
+  closePanel();
+}
+
+function closePanel(){
+  document.getElementById('panel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+renderBoard();
+</script>
+</body>
+</html>

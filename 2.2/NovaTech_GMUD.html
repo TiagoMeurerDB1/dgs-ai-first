@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GMUD — NovaTech · DB1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Viewport base ─────────────────────────────────── */
+html,body{height:100%;overflow-x:hidden}
+html{scroll-snap-type:y mandatory;scroll-behavior:smooth}
+.slide{width:100vw;height:100vh;height:100dvh;overflow:hidden;scroll-snap-align:start;display:flex;flex-direction:column;position:relative}
+.slide-content{flex:1;display:flex;flex-direction:column;justify-content:center;max-height:100%;overflow:hidden;padding:var(--sp)}
+:root{
+  --title-size: clamp(1.8rem, 4.5vw, 3.8rem);
+  --h2-size:    clamp(1.05rem, 2vw, 1.65rem);
+  --h3-size:    clamp(0.82rem, 1.4vw, 1.1rem);
+  --body-size:  clamp(0.68rem, 1.1vw, 0.88rem);
+  --small-size: clamp(0.58rem, 0.82vw, 0.72rem);
+  --sp:         clamp(1.5rem, 5vw, 5rem);
+  --gap:        clamp(0.6rem, 1.4vw, 1.4rem);
+  --el:         clamp(0.28rem, 0.7vw, 0.7rem);
+
+  /* palette */
+  --bg:       #F5F3EF;
+  --bg2:      #EDEAE4;
+  --bg3:      #E2DED5;
+  --ink:      #1A1916;
+  --ink2:     #3D3B36;
+  --muted:    #8C8880;
+  --rule:     #D4CFC6;
+  --blue:     #1D4ED8;   /* Tipo 2 */
+  --blue-bg:  #EEF3FD;
+  --amber:    #B45309;   /* Tipo 1 */
+  --amber-bg: #FEF3C7;
+  --red:      #B91C1C;   /* Tipo 3 */
+  --red-bg:   #FEE2E2;
+  --green:    #166534;
+  --green-bg: #DCFCE7;
+  --purple:   #6D28D9;
+  --purple-bg:#EDE9FE;
+}
+@media(max-height:700px){:root{--sp:clamp(1rem,3vw,2.5rem);--title-size:clamp(1.4rem,3.5vw,2.4rem);--h2-size:clamp(0.88rem,1.7vw,1.3rem);--body-size:clamp(0.6rem,1vw,0.8rem)}}
+@media(max-height:600px){:root{--sp:clamp(0.6rem,2vw,1.5rem)}.nav-dots,.hint{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.15s!important}html{scroll-behavior:auto}}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink)}
+
+/* ── Nav ─────────────────────────────────────────── */
+.nav-dots{position:fixed;right:clamp(.8rem,2vw,2rem);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:7px;z-index:200}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--rule);border:none;cursor:pointer;transition:all .3s}
+.dot.active{background:var(--ink);transform:scale(1.8)}
+.hint{position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);font-size:var(--small-size);color:var(--rule);font-family:'DM Mono',monospace}
+
+/* ── Top bar ────────────────────────────────────── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:clamp(.6rem,1.2vh,1rem) var(--sp);border-bottom:1px solid var(--rule);flex-shrink:0}
+.tb-l{display:flex;align-items:center;gap:.8em;font-size:var(--small-size);color:var(--muted);font-family:'DM Mono',monospace}
+.tb-r{font-size:var(--small-size);color:var(--muted);font-family:'DM Mono',monospace}
+.sl-no{color:var(--ink2);font-weight:500}
+
+/* ── Animations ─────────────────────────────────── */
+@keyframes fu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fl{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:translateX(0)}}
+.slide.active .rv {animation:fu .5s cubic-bezier(.22,1,.36,1) both}
+.slide.active .rl {animation:fl .5s cubic-bezier(.22,1,.36,1) both}
+.rv,.rl{opacity:0}
+.d1{animation-delay:.04s!important}.d2{animation-delay:.1s!important}.d3{animation-delay:.17s!important}.d4{animation-delay:.24s!important}.d5{animation-delay:.31s!important}.d6{animation-delay:.38s!important}.d7{animation-delay:.45s!important}.d8{animation-delay:.52s!important}
+
+/* ── Type helpers ────────────────────────────────── */
+.title{font-size:var(--title-size);font-weight:300;line-height:1.06;letter-spacing:-.02em}
+.title strong{font-weight:500}
+.h2{font-size:var(--h2-size);font-weight:400;line-height:1.25;letter-spacing:-.01em}
+.body{font-size:var(--body-size);color:var(--muted);line-height:1.65;font-weight:300}
+.mono{font-family:'DM Mono',monospace}
+.label{font-family:'DM Mono',monospace;font-size:var(--small-size);color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.tag{display:inline-block;font-family:'DM Mono',monospace;font-size:var(--small-size);padding:.2em .65em;border-radius:2px;border:1px solid var(--rule);color:var(--ink2)}
+.tag-t1{border-color:var(--amber);color:var(--amber);background:var(--amber-bg)}
+.tag-t2{border-color:var(--blue);color:var(--blue);background:var(--blue-bg)}
+.tag-t3{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+.tag-em{border-color:var(--purple);color:var(--purple);background:var(--purple-bg)}
+
+/* ══════════════════════════════════════════════════
+   SLIDE 1 — CAPA
+══════════════════════════════════════════════════ */
+#s1{background:var(--bg)}
+.cover-rule{width:clamp(2rem,5vw,4rem);height:1px;background:var(--ink);margin-bottom:var(--gap)}
+.cover-inner{display:flex;flex-direction:column;gap:var(--gap)}
+.cover-meta{display:flex;gap:.5em;flex-wrap:wrap;margin-top:.2em}
+.cover-footer{position:absolute;bottom:clamp(1rem,2.5vh,2rem);left:var(--sp);right:var(--sp);display:flex;justify-content:space-between;align-items:flex-end}
+.scope-list{display:flex;gap:.4em;flex-wrap:wrap}
+
+/* ══════════════════════════════════════════════════
+   SLIDE 2 — CLASSIFICAÇÃO
+══════════════════════════════════════════════════ */
+#s2{background:var(--bg)}
+.class-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(.8rem,2vw,2rem)}
+.class-card{display:flex;flex-direction:column;gap:clamp(.4rem,.9vh,.9rem);padding:clamp(.8rem,1.5vh,1.4rem);border-radius:3px;border-top:3px solid}
+.class-card.t1{border-top-color:var(--amber);background:var(--bg)}
+.class-card.t2{border-top-color:var(--blue);background:var(--bg)}
+.class-card.t3{border-top-color:var(--red);background:var(--bg)}
+.cc-head{display:flex;align-items:center;gap:.6em}
+.cc-num{font-family:'DM Mono',monospace;font-size:clamp(1.6rem,3.5vw,2.8rem);font-weight:400;line-height:1;color:var(--bg3)}
+.cc-title{font-size:var(--h3-size);font-weight:500;color:var(--ink);line-height:1.2}
+.cc-meta{display:flex;flex-direction:column;gap:.35em}
+.cc-row{display:grid;grid-template-columns:6em 1fr;gap:.4em;font-size:var(--body-size)}
+.cc-key{color:var(--muted);font-weight:300}
+.cc-val{color:var(--ink2);font-weight:400}
+.cc-examples{display:flex;flex-direction:column;gap:.2em;border-top:1px solid var(--rule);padding-top:.5em;margin-top:.1em}
+.cc-ex{font-size:var(--small-size);color:var(--muted);display:flex;gap:.4em;line-height:1.4}
+.cc-ex::before{content:'—';flex-shrink:0;color:var(--rule)}
+
+/* ══════════════════════════════════════════════════
+   SLIDES 3/4/5 — FLUXOS
+══════════════════════════════════════════════════ */
+.flow-slide{background:var(--bg)}
+.flow-layout{display:grid;grid-template-columns:clamp(180px,22vw,260px) 1fr;gap:clamp(1.5rem,3vw,4rem);align-items:start}
+.flow-left{display:flex;flex-direction:column;gap:var(--gap);padding-right:clamp(1rem,2vw,2.5rem);border-right:1px solid var(--rule)}
+.flow-big-num{font-family:'DM Mono',monospace;font-size:clamp(3.5rem,10vw,8rem);font-weight:400;line-height:1;color:var(--bg3);letter-spacing:-.04em;margin-bottom:-.2em}
+.flow-sla{display:flex;flex-direction:column;gap:.3em}
+.sla-bar-wrap{display:flex;align-items:center;gap:.6em}
+.sla-bar{flex:1;height:2px;background:var(--bg3);border-radius:1px}
+.sla-fill{height:100%;border-radius:1px}
+.sla-t1{background:var(--amber)}
+.sla-t2{background:var(--blue)}
+.sla-t3{background:var(--red)}
+.sla-label{font-family:'DM Mono',monospace;font-size:var(--small-size);color:var(--ink2);white-space:nowrap}
+.approver-list{display:flex;flex-direction:column;gap:.35em}
+.ap-row{display:flex;align-items:center;gap:.5em}
+.av{width:clamp(20px,2vw,26px);height:clamp(20px,2vw,26px);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:clamp(.45rem,.7vw,.62rem);font-weight:500;flex-shrink:0;border:1px solid var(--rule)}
+.av-tl{background:#EEF3FD;color:#1D4ED8;border-color:#BDD1FB}
+.av-ps{background:#FEF3C7;color:#92400E;border-color:#FCD34D}
+.av-qa{background:#DCFCE7;color:#166534;border-color:#86EFAC}
+.av-dm{background:#F3F4F6;color:#374151;border-color:#D1D5DB}
+.av-nt{background:#EDE9FE;color:#6D28D9;border-color:#C4B5FD}
+.av-sr{background:#EEF3FD;color:#3B82F6;border-color:#BFDBFE}
+.ap-name{font-size:var(--body-size);font-weight:400;color:var(--ink)}
+.ap-note{font-size:var(--small-size);color:var(--muted)}
+
+/* Flow steps */
+.flow-steps{display:flex;flex-direction:column;gap:0}
+.step{display:grid;grid-template-columns:1.8em 1fr;gap:.6em;align-items:start;padding:clamp(.3rem,.7vh,.65rem) 0}
+.step:not(:last-child){border-bottom:1px solid var(--bg3)}
+.step-num{font-family:'DM Mono',monospace;font-size:var(--small-size);color:var(--muted);padding-top:.1em}
+.step-body{display:flex;flex-direction:column;gap:.2em}
+.step-who{display:flex;align-items:center;gap:.4em;margin-bottom:.1em}
+.step-who-label{font-size:var(--small-size);font-weight:500;color:var(--ink)}
+.step-action{font-size:var(--body-size);color:var(--ink2);line-height:1.5;font-weight:300}
+.step-detail{font-size:var(--small-size);color:var(--muted);line-height:1.4;font-style:italic}
+.step-gate{font-family:'DM Mono',monospace;font-size:var(--small-size);padding:.15em .5em;border-radius:2px;border:1px solid;display:inline-block;margin-top:.2em}
+.gate-t1{border-color:var(--amber);color:var(--amber);background:var(--amber-bg)}
+.gate-t2{border-color:var(--blue);color:var(--blue);background:var(--blue-bg)}
+.gate-t3{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+.rollback{border-left:2px solid var(--red);padding-left:.7em;margin-top:.2em}
+.rb-label{font-family:'DM Mono',monospace;font-size:var(--small-size);color:var(--red);text-transform:uppercase;letter-spacing:.06em}
+.rb-text{font-size:var(--body-size);color:var(--muted);line-height:1.5;font-weight:300;margin-top:.15em}
+
+/* ══════════════════════════════════════════════════
+   SLIDE 6 — ESCOPO POR TIPO
+══════════════════════════════════════════════════ */
+#s6{background:var(--bg)}
+.scope-table{width:100%;border-collapse:collapse;font-size:var(--body-size)}
+.scope-table th{font-family:'DM Mono',monospace;font-size:var(--small-size);font-weight:400;color:var(--muted);padding:.5em .7em;text-align:left;border-bottom:1px solid var(--rule);letter-spacing:.05em}
+.scope-table td{padding:.55em .7em;border-bottom:1px solid var(--bg3);vertical-align:top;color:var(--ink2);font-weight:300;line-height:1.45}
+.scope-table tr:last-child td{border-bottom:none}
+.scope-table td:first-child{font-weight:400;color:var(--ink);border-right:1px solid var(--rule);white-space:nowrap}
+.t1c{color:var(--amber);font-family:'DM Mono',monospace;font-size:var(--small-size)}
+.t2c{color:var(--blue);font-family:'DM Mono',monospace;font-size:var(--small-size)}
+.t3c{color:var(--red);font-family:'DM Mono',monospace;font-size:var(--small-size)}
+.scope-note{font-size:var(--small-size);color:var(--muted);font-style:italic}
+
+/* ══════════════════════════════════════════════════
+   SLIDE 7 — RACI
+══════════════════════════════════════════════════ */
+#s7{background:var(--bg)}
+.raci-table{width:100%;border-collapse:collapse;font-size:var(--body-size)}
+.raci-table th{font-family:'DM Mono',monospace;font-size:var(--small-size);font-weight:400;color:var(--muted);padding:.45em .5em;text-align:center;border-bottom:1px solid var(--rule);letter-spacing:.04em;white-space:nowrap}
+.raci-table th:first-child{text-align:left}
+.raci-table td{padding:.45em .5em;border-bottom:1px solid var(--bg3);text-align:center;font-family:'DM Mono',monospace;font-size:var(--small-size);color:var(--muted)}
+.raci-table td:first-child{text-align:left;font-family:'DM Sans',sans-serif;color:var(--ink2);font-weight:300;font-size:var(--body-size)}
+.raci-table tr:last-child td{border-bottom:none}
+.r-R{color:var(--blue);font-weight:500}
+.r-A{color:var(--red);font-weight:500}
+.r-C{color:var(--amber);font-weight:500}
+.r-I{color:var(--muted)}
+.raci-legend{display:flex;gap:1.2em;margin-top:.8em;flex-wrap:wrap}
+.rl-item{display:flex;align-items:center;gap:.4em;font-size:var(--small-size);color:var(--muted)}
+.rl-badge{font-family:'DM Mono',monospace;font-weight:500;font-size:var(--small-size)}
+</style>
+</head>
+<body>
+
+<nav class="nav-dots">
+  <button class="dot active" onclick="go(0)"></button>
+  <button class="dot" onclick="go(1)"></button>
+  <button class="dot" onclick="go(2)"></button>
+  <button class="dot" onclick="go(3)"></button>
+  <button class="dot" onclick="go(4)"></button>
+  <button class="dot" onclick="go(5)"></button>
+  <button class="dot" onclick="go(6)"></button>
+</nav>
+<p class="hint">↑ ↓ · espaço</p>
+
+<!-- ══ S1: CAPA ══════════════════════════════════════════════════ -->
+<section class="slide" id="s1">
+  <div class="slide-content">
+    <div class="cover-inner">
+      <div class="cover-rule rv d1"></div>
+      <div class="rv d2">
+        <p class="label" style="margin-bottom:.5em">NovaTech · DB1 Group · 2026</p>
+        <h1 class="title">Gestão de<br><strong>Mudança</strong></h1>
+      </div>
+      <p class="body rv d3" style="max-width:48ch">Processo híbrido — leve para mudanças rotineiras, formal para mudanças críticas. Cobre código, infra, specs, prompts e base documental do RAG.</p>
+      <div class="cover-meta rv d4">
+        <span class="tag tag-t1">Tipo 1 · Rotineira</span>
+        <span class="tag tag-t2">Tipo 2 · Significativa</span>
+        <span class="tag tag-t3">Tipo 3 · Crítica</span>
+        <span class="tag tag-em">Emergência</span>
+      </div>
+    </div>
+  </div>
+  <div class="cover-footer">
+    <div class="scope-list">
+      <span class="tag">Código e infra</span>
+      <span class="tag">Specs SDD</span>
+      <span class="tag">Prompts</span>
+      <span class="tag">Base documental RAG</span>
+    </div>
+    <p class="mono" style="font-size:var(--small-size);color:var(--muted)">01 / 07</p>
+  </div>
+</section>
+
+<!-- ══ S2: CLASSIFICAÇÃO ═════════════════════════════════════════ -->
+<section class="slide" id="s2">
+  <div class="topbar rv d1">
+    <div class="tb-l"><span class="sl-no">02</span> Classificação de mudanças</div>
+    <div class="tb-r mono">toda mudança é classificada antes de qualquer ação</div>
+  </div>
+  <div class="slide-content" style="padding-top:clamp(.4rem,1vh,.8rem);padding-bottom:clamp(.4rem,1vh,.8rem)">
+    <div class="class-grid rv d2">
+
+      <div class="class-card t1">
+        <div class="cc-head">
+          <div class="cc-num">01</div>
+          <div>
+            <div class="cc-title">Rotineira</div>
+            <span class="tag tag-t1" style="margin-top:.2em">baixo risco</span>
+          </div>
+        </div>
+        <div class="cc-meta">
+          <div class="cc-row"><span class="cc-key">Aprovadores</span><span class="cc-val">1 — TL ou Dev Sr</span></div>
+          <div class="cc-row"><span class="cc-key">Janela</span><span class="cc-val">Horário comercial</span></div>
+          <div class="cc-row"><span class="cc-key">SLA</span><span class="cc-val">4 horas úteis</span></div>
+          <div class="cc-row"><span class="cc-key">Registro</span><span class="cc-val">PR + label</span></div>
+          <div class="cc-row"><span class="cc-key">Rollback</span><span class="cc-val">Revert imediato</span></div>
+        </div>
+        <div class="cc-examples">
+          <span class="cc-ex">Correção de bug sem mudança de interface</span>
+          <span class="cc-ex">Adição de documento novo ao RAG</span>
+          <span class="cc-ex">Atualização de dependência (patch)</span>
+          <span class="cc-ex">Runbook e documentação interna</span>
+        </div>
+      </div>
+
+      <div class="class-card t2">
+        <div class="cc-head">
+          <div class="cc-num">02</div>
+          <div>
+            <div class="cc-title">Significativa</div>
+            <span class="tag tag-t2" style="margin-top:.2em">médio risco</span>
+          </div>
+        </div>
+        <div class="cc-meta">
+          <div class="cc-row"><span class="cc-key">Aprovadores</span><span class="cc-val">TL + PS (ambos)</span></div>
+          <div class="cc-row"><span class="cc-key">Janela</span><span class="cc-val">Comercial + notif. 24h</span></div>
+          <div class="cc-row"><span class="cc-key">SLA</span><span class="cc-val">1 dia útil</span></div>
+          <div class="cc-row"><span class="cc-key">Registro</span><span class="cc-val">PR + formulário GMUD-T2</span></div>
+          <div class="cc-row"><span class="cc-key">Rollback</span><span class="cc-val">Plano documentado</span></div>
+        </div>
+        <div class="cc-examples">
+          <span class="cc-ex">Nova feature ou endpoint</span>
+          <span class="cc-ex">Alteração em spec aprovada</span>
+          <span class="cc-ex">Mudança no system prompt</span>
+          <span class="cc-ex">Remoção de doc da base RAG</span>
+          <span class="cc-ex">Parâmetros do Azure AI Search</span>
+        </div>
+      </div>
+
+      <div class="class-card t3">
+        <div class="cc-head">
+          <div class="cc-num">03</div>
+          <div>
+            <div class="cc-title">Crítica</div>
+            <span class="tag tag-t3" style="margin-top:.2em">alto risco</span>
+          </div>
+        </div>
+        <div class="cc-meta">
+          <div class="cc-row"><span class="cc-key">Aprovadores</span><span class="cc-val">TL + DM + NovaTech</span></div>
+          <div class="cc-row"><span class="cc-key">Janela</span><span class="cc-val">Fora do pico + notif. 48h</span></div>
+          <div class="cc-row"><span class="cc-key">SLA</span><span class="cc-val">2 dias úteis</span></div>
+          <div class="cc-row"><span class="cc-key">Registro</span><span class="cc-val">GMUD-T3 + ADO + ata</span></div>
+          <div class="cc-row"><span class="cc-key">Rollback</span><span class="cc-val">Testado em staging</span></div>
+        </div>
+        <div class="cc-examples">
+          <span class="cc-ex">Troca de modelo LLM</span>
+          <span class="cc-ex">Schema do índice AI Search</span>
+          <span class="cc-ex">Context budget e chunking</span>
+          <span class="cc-ex">Remoção em lote &gt;10% da base</span>
+          <span class="cc-ex">Primeiro deploy de componente</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ S3: FLUXO TIPO 1 ═══════════════════════════════════════════ -->
+<section class="slide flow-slide" id="s3">
+  <div class="topbar rv d1">
+    <div class="tb-l"><span class="sl-no">03</span> <span class="tag tag-t1">Tipo 1 · Rotineira</span></div>
+    <div class="tb-r mono">fluxo leve — PR + checklist</div>
+  </div>
+  <div class="slide-content" style="padding-top:clamp(.5rem,1.2vh,1rem);padding-bottom:clamp(.5rem,1.2vh,1rem)">
+    <div class="flow-layout">
+
+      <div class="flow-left rl d2">
+        <div>
+          <div class="flow-big-num">01</div>
+          <div class="h2" style="margin-top:.3em">Rotineira</div>
+          <p class="body" style="margin-top:.4em">Baixo risco · reversão simples. Nenhum formulário — apenas PR com label e checklist embutido.</p>
+        </div>
+        <div class="flow-sla">
+          <div class="label" style="margin-bottom:.3em">SLA de aprovação</div>
+          <div class="sla-bar-wrap">
+            <div class="sla-bar"><div class="sla-fill sla-t1" style="width:25%"></div></div>
+            <span class="sla-label">4 horas úteis</span>
+          </div>
+        </div>
+        <div>
+          <div class="label" style="margin-bottom:.4em">Aprovadores</div>
+          <div class="approver-list">
+            <div class="ap-row"><span class="av av-tl">TL</span><span class="ap-name">Tech Lead</span><span class="ap-note">— ou</span></div>
+            <div class="ap-row"><span class="av av-sr">Sr</span><span class="ap-name">Dev Sênior</span><span class="ap-note">— um dos dois</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-steps rv d3">
+        <div class="step">
+          <span class="step-num">1</span>
+          <div class="step-body">
+            <div class="step-who"><span class="av av-tl">TL</span><span class="step-who-label">Autor</span></div>
+            <div class="step-action">Identifica necessidade de mudança e confirma classificação Tipo 1</div>
+            <div class="step-detail">Se tiver dúvida sobre a classificação, escalona para DM antes de prosseguir.</div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">2</span>
+          <div class="step-body">
+            <div class="step-who"><span class="av av-tl">TL</span><span class="step-who-label">Autor</span></div>
+            <div class="step-action">Abre PR com checklist T1 preenchido e label <code style="font-family:'DM Mono',monospace;font-size:.85em">gmud:rotineira</code></div>
+            <div class="step-detail">Checklist: sem mudança de interface · CI verde · rollback em &lt;5min · sem impacto em acurácia</div>
+            <span class="step-gate gate-t1">⏸ Aguarda revisão</span>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">3</span>
+          <div class="step-body">
+            <div class="step-who"><span class="av av-tl">TL</span><span class="step-who-label">TL ou Dev Sr</span></div>
+            <div class="step-action">Code review e aprovação do PR</div>
+            <div class="step-detail">SLA: 4 horas úteis após abertura do PR.</div>
+            <span class="step-gate gate-t1">⏸ Aprovação</span>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">4</span>
+          <div class="step-body">
+            <div class="step-who"><span class="av av-tl">TL</span><span class="step-who-label">Autor</span></div>
+            <div class="step-action">Merge e execução</div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">5</span>
+          <div class="step-body">
+            <div class="step-who"><span class="av av-dm">DM</span><span class="step-who-label">Autor</span></div>
+            <div class="step-action">Fecha item no Azure DevOps com link do PR</div>
+          </div>
+        </div>
+        <div class="rollback rv d4" style="margin-top:.4em">
+          <div class="rb-label">Rollback</div>
+          <div class="rb-text">Revert de commit via GitHub. Tempo estimado: &lt; 5 minutos. Sem necessidade de nova aprovação.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ S4: FLUXO TIPO 2 ═══════════════════════════════════════════ -->
+<section class="slide flow-slide" id="s4">
+  <div class="topbar rv d1">
+    <div class="tb-l"><span class="sl-no">04</span> <span class="tag tag-t2">Tipo 2 · Significativa</span></div>
+    <div class="tb-r mono">fluxo padrão — formulário + dois aprovadores</div>
+  </div>
+  <div class="slide-content" style="padding-top:clamp(.5rem,1.2vh,1rem);padding-bottom:clamp(.5rem,1.2vh,1rem)">
+    <div class="flow-layout">
+
+      <div class="flow-left rl d2">
+        <div>
+          <div class="flow-big-num">02</div>
+          <div class="h2" style="margin-top:.3em">Significativa</div>
+          <p class="body" style="margin-top:.4em">Médio risco · altera comportamento observável. Requer formulário GMUD-T2 e dois aprovadores independentes.</p>
+        </div>
+        <div class="flow-sla">
+          <div class="label" style="margin-bottom:.3em">SLA de aprovação</div>
+          <div class="sla-bar-wrap">
+            <div class="sla-bar"><div class="sla-fill sla-t2" style="width:50%"></div></div>
+            <span class="sla-label">1 dia útil</span>
+          </div>
+        </div>
+        <div>
+          <div class="label" style="margin-bottom:.4em">Aprovadores</div>
+          <div class="approver-list">
+            <div class="ap-row"><span class="av av-tl">TL</span><span class="ap-name">Tech Lead</span><span class="ap-note">— técnico</span></div>
+            <div class="ap-row"><span class="av av-ps">PS</span><span class="ap-name">Product Specialist</span><span class="ap-note">— produto</span></div>
+          </div>
+          <p class="body" style="margin-top:.4em;font-size:var(--small-size)">Ambos obrigatórios. Uma aprovação não substitui a outra.</p>
+        </div>
+      </div>
+
+      <div class="flow-steps rv d3">
+        <div class="step">
+          <span class="step-num">1</span>
+          <div class="step-body">
+            <div class="step-who"><span class="av av-tl">Au</span><span class="step-who-label">Autor</span></div>
+            <div class="step-action">Preenche formulário GMUD-T2: descrição, impacto, rollback, janela, plano de teste</div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">2</span>
+          <div class="step-body">
+            <div class="step-who"><span class="av av-dm">DM</span><span class="step-who-label">Delivery Manager</span></div>
+            <div class="step-action">Confirma classificação Tipo 2 e registra no Azure DevOps</div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">3</span>
+          <div class="step-body">
+            <div class="step-who"><span class="av av-tl">Au</span><span class="step-who-label">Autor</span></div>
+            <div class="step-action">Abre PR com formulário GMUD-T2 e label <code style="font-family:'DM Mono',monospace;font-size:.85em">gmud:significativa</code></div>
+            <span class="step-gate gate-t2">⏸ Aguarda revisão dupla</span>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">4</span>
+          <div class="step-body">
+            <div class="step-who"><span class="av av-tl">TL</span><span class="av av-ps" style="margin-left:-.3em">PS</span><span class="step-who-label">TL + PS</span></div>
+            <div class="step-action">Revisões independentes: técnica (TL) e de produto (PS). Ambas obrigatórias.</div>
+            <span class="step-gate gate-t2">⏸ Aprovação dupla</span>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">5</span>
+          <div class="step-body">
+            <div class="step-who"><span class="av av-tl">Au</span><span class="step-who-label">Autor</span></div>
+            <div class="step-action">Merge e execução em janela comercial com notificação 24h antes</div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">6</span>
+          <div class="step-body">
+            <div class="step-who"><span class="av av-qa">QA</span><span class="step-who-label">QA</span></div>
+            <div class="step-action">Smoke tests pós-execução — 20 perguntas críticas do atendimento</div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">7</span>
+          <div class="step-body">
+            <div class="step-who"><span class="av av-dm">DM</span><span class="step-who-label">Delivery Manager</span></div>
+            <div class="step-action">Fecha registro no Azure DevOps com resultado e evidências</div>
+          </div>
+        </div>
+        <div class="rollback rv d4" style="margin-top:.2em">
+          <div class="rb-label">Rollback</div>
+          <div class="rb-text">Plano documentado no GMUD-T2. Executado pelo TL sem nova aprovação se smoke tests falharem.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ S5: FLUXO TIPO 3 ═══════════════════════════════════════════ -->
+<section class="slide flow-slide" id="s5">
+  <div class="topbar rv d1">
+    <div class="tb-l"><span class="sl-no">05</span> <span class="tag tag-t3">Tipo 3 · Crítica</span></div>
+    <div class="tb-r mono">fluxo formal — três aprovadores + staging obrigatório</div>
+  </div>
+  <div class="slide-content" style="padding-top:clamp(.4rem,1vh,.8rem);padding-bottom:clamp(.4rem,1vh,.8rem)">
+    <div class="flow-layout">
+
+      <div class="flow-left rl d2">
+        <div>
+          <div class="flow-big-num">03</div>
+          <div class="h2" style="margin-top:.3em">Crítica</div>
+          <p class="body" style="margin-top:.4em">Alto risco · pode degradar acurácia do assistente. Staging obrigatório antes de produção. NovaTech notificada 48h antes.</p>
+        </div>
+        <div class="flow-sla">
+          <div class="label" style="margin-bottom:.3em">SLA de aprovação</div>
+          <div class="sla-bar-wrap">
+            <div class="sla-bar"><div class="sla-fill sla-t3" style="width:80%"></div></div>
+            <span class="sla-label">2 dias úteis</span>
+          </div>
+        </div>
+        <div>
+          <div class="label" style="margin-bottom:.4em">Aprovadores</div>
+          <div class="approver-list">
+            <div class="ap-row"><span class="av av-tl">TL</span><span class="ap-name">Tech Lead</span></div>
+            <div class="ap-row"><span class="av av-dm">DM</span><span class="ap-name">Delivery Manager</span></div>
+            <div class="ap-row"><span class="av av-nt">NT</span><span class="ap-name">NovaTech</span><span class="ap-note">— rep. designado</span></div>
+          </div>
+          <p class="body" style="margin-top:.4em;font-size:var(--small-size)">Aprovação registrada em ata (e-mail ou Teams).</p>
+        </div>
+      </div>
+
+      <div class="flow-steps rv d3">
+        <div class="step">
+          <span class="step-num">1–2</span>
+          <div class="step-body">
+            <div class="step-who"><span class="av av-tl">Au</span><span class="av av-dm" style="margin-left:-.3em">DM</span><span class="step-who-label">Autor + DM</span></div>
+            <div class="step-action">Preenche GMUD-T3 · DM notifica TL, PS e NovaTech · registra no Azure DevOps com tag <code style="font-family:'DM Mono',monospace;font-size:.85em">gmud-critica</code></div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">3</span>
+          <div class="step-body">
+            <div class="step-who"><span class="av av-tl">TL</span><span class="step-who-label">Tech Lead</span></div>
+            <div class="step-action">Revisão técnica aprofundada · valida plano de rollback em staging</div>
+            <span class="step-gate gate-t3">⏸ Aprovação TL</span>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">4</span>
+          <div class="step-body">
+            <div class="step-who"><span class="av av-dm">DM</span><span class="av av-nt" style="margin-left:-.3em">NT</span><span class="step-who-label">DM + NovaTech</span></div>
+            <div class="step-action">Aprovação formal em ata · define janela de execução</div>
+            <span class="step-gate gate-t3">⏸ Aprovação formal</span>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">5</span>
+          <div class="step-body">
+            <div class="step-who"><span class="av av-tl">TL</span><span class="step-who-label">Tech Lead</span></div>
+            <div class="step-action">Executa em staging · valida acurácia RAG ≥ 85% no dataset de 200 perguntas</div>
+            <span class="step-gate gate-t3">⏸ Acurácia &lt; 85% → bloqueia</span>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">6</span>
+          <div class="step-body">
+            <div class="step-who"><span class="av av-dm">DM</span><span class="step-who-label">Delivery Manager</span></div>
+            <div class="step-action">Notificação 48h antes à NovaTech · confirma janela e equipe de plantão</div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">7–8</span>
+          <div class="step-body">
+            <div class="step-who"><span class="av av-tl">TL</span><span class="av av-qa" style="margin-left:-.3em">QA</span><span class="step-who-label">TL + QA</span></div>
+            <div class="step-action">Execução em produção na janela aprovada · smoke tests · monitoramento ativo 24h</div>
+            <div class="step-detail">Critério de rollback automático: acurácia &lt; 80% em 24h → rollback sem nova aprovação.</div>
+          </div>
+        </div>
+        <div class="rollback rv d4" style="margin-top:.2em">
+          <div class="rb-label">Rollback automático</div>
+          <div class="rb-text">Se acurácia &lt; 80% nas primeiras 24h: TL executa rollback, DM notifica NovaTech em &lt;1h. Post-mortem obrigatório em 2 dias úteis.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ S6: ESCOPO POR TIPO ════════════════════════════════════════ -->
+<section class="slide" id="s6">
+  <div class="topbar rv d1">
+    <div class="tb-l"><span class="sl-no">06</span> Classificação por escopo e operação</div>
+    <div class="tb-r mono">regras específicas por tipo de artefato</div>
+  </div>
+  <div class="slide-content" style="padding-top:clamp(.4rem,1vh,.8rem);padding-bottom:clamp(.4rem,1vh,.8rem)">
+    <table class="scope-table rv d2">
+      <thead>
+        <tr>
+          <th style="width:clamp(120px,18vw,200px)">Artefato / operação</th>
+          <th>Classificação padrão</th>
+          <th>Condição de upgrade</th>
+          <th>Regra adicional</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Código — bug fix</td>
+          <td><span class="t1c">Tipo 1</span></td>
+          <td>Tipo 2 se altera interface pública</td>
+          <td>CI deve estar verde antes do merge</td>
+        </tr>
+        <tr>
+          <td>Código — nova feature</td>
+          <td><span class="t2c">Tipo 2</span></td>
+          <td>Tipo 3 se é primeiro deploy em prod</td>
+          <td>Spec aprovada é pré-requisito</td>
+        </tr>
+        <tr>
+          <td>Infra (Bicep)</td>
+          <td><span class="t2c">Tipo 2</span></td>
+          <td>Tipo 3 se destrói recursos</td>
+          <td>Output do <code class="mono">what-if</code> obrigatório no PR</td>
+        </tr>
+        <tr>
+          <td>Spec SDD — tasks.md</td>
+          <td><span class="t1c">T1</span> ou <span class="t2c">T2</span></td>
+          <td>T2 se altera critério de aceite</td>
+          <td>Versão do doc deve ser incrementada</td>
+        </tr>
+        <tr>
+          <td>Spec SDD — plan.md</td>
+          <td><span class="t2c">Tipo 2</span></td>
+          <td>Tipo 3 se revoga ADR anterior</td>
+          <td>PS + Dev Sr como aprovadores adicionais</td>
+        </tr>
+        <tr>
+          <td>Spec SDD — requirements.md</td>
+          <td><span class="t2c">Tipo 2</span></td>
+          <td>Tipo 3 se impacta escopo contratado</td>
+          <td>NovaTech co-aprova se escopo muda</td>
+        </tr>
+        <tr>
+          <td>Prompt — system-prompt.md</td>
+          <td><span class="t2c">Tipo 2</span></td>
+          <td>Tipo 3 se acurácia regride &gt; 3 p.p.</td>
+          <td>Avaliação em golden-queries.json obrigatória</td>
+        </tr>
+        <tr>
+          <td>Base RAG — adição de docs</td>
+          <td><span class="t1c">Tipo 1</span></td>
+          <td>Tipo 2 se &gt; 50 docs de uma vez</td>
+          <td>Score de qualidade ≥ 4 obrigatório</td>
+        </tr>
+        <tr>
+          <td>Base RAG — atualização de docs</td>
+          <td><span class="t2c">Tipo 2</span></td>
+          <td>Tipo 3 se afeta &gt; 10% da base</td>
+          <td>Staging antes de prod; reindexação logada</td>
+        </tr>
+        <tr>
+          <td>Base RAG — remoção de docs</td>
+          <td><span class="t2c">Tipo 2</span></td>
+          <td>Tipo 3 se &gt; 10% da base</td>
+          <td>Marcar como <code class="mono">obsoleto</code> antes de remover</td>
+        </tr>
+        <tr>
+          <td>Modelo LLM / chunking / budget</td>
+          <td><span class="t3c">Tipo 3</span></td>
+          <td>—</td>
+          <td>Sempre staging obrigatório + ata de aprovação</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══ S7: RACI ═══════════════════════════════════════════════════ -->
+<section class="slide" id="s7">
+  <div class="topbar rv d1">
+    <div class="tb-l"><span class="sl-no">07</span> Matriz RACI</div>
+    <div class="tb-r mono">responsabilidades por atividade</div>
+  </div>
+  <div class="slide-content" style="padding-top:clamp(.4rem,1vh,.8rem);padding-bottom:clamp(.4rem,1vh,.8rem)">
+    <table class="raci-table rv d2">
+      <thead>
+        <tr>
+          <th style="text-align:left;width:clamp(140px,22vw,240px)">Atividade</th>
+          <th>TL</th>
+          <th>Dev Sr</th>
+          <th>Dev Pl</th>
+          <th>QA</th>
+          <th>PS</th>
+          <th>DM</th>
+          <th>NovaTech</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Identificar e classificar mudança</td>
+          <td class="r-R">R</td><td class="r-C">C</td><td class="r-C">C</td><td class="r-C">C</td><td class="r-C">C</td><td class="r-A">A</td><td class="r-I">I</td>
+        </tr>
+        <tr>
+          <td>Preencher formulário GMUD</td>
+          <td class="r-R">R</td><td class="r-C">C</td><td class="r-C">C</td><td>—</td><td class="r-C">C</td><td class="r-A">A</td><td>—</td>
+        </tr>
+        <tr>
+          <td>Aprovar Tipo 1</td>
+          <td class="r-A">A</td><td class="r-R">R</td><td>—</td><td>—</td><td>—</td><td class="r-I">I</td><td>—</td>
+        </tr>
+        <tr>
+          <td>Aprovar Tipo 2 — técnico</td>
+          <td class="r-A">A</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="r-I">I</td><td>—</td>
+        </tr>
+        <tr>
+          <td>Aprovar Tipo 2 — produto</td>
+          <td>—</td><td>—</td><td>—</td><td>—</td><td class="r-A">A</td><td class="r-I">I</td><td>—</td>
+        </tr>
+        <tr>
+          <td>Aprovar Tipo 3 (formal)</td>
+          <td class="r-A">A</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="r-A">A</td><td class="r-A">A</td>
+        </tr>
+        <tr>
+          <td>Executar mudança</td>
+          <td class="r-R">R</td><td class="r-C">C</td><td class="r-C">C</td><td>—</td><td>—</td><td class="r-I">I</td><td>—</td>
+        </tr>
+        <tr>
+          <td>Validar acurácia RAG (staging)</td>
+          <td class="r-R">R</td><td>—</td><td>—</td><td class="r-C">C</td><td>—</td><td class="r-I">I</td><td>—</td>
+        </tr>
+        <tr>
+          <td>Smoke tests pós-execução</td>
+          <td>—</td><td>—</td><td>—</td><td class="r-R">R</td><td>—</td><td class="r-I">I</td><td class="r-I">I</td>
+        </tr>
+        <tr>
+          <td>Notificar NovaTech</td>
+          <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="r-R">R</td><td class="r-A">A</td>
+        </tr>
+        <tr>
+          <td>Fechar registro no Azure DevOps</td>
+          <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="r-R">R</td><td>—</td>
+        </tr>
+        <tr>
+          <td>Post-mortem (emergência)</td>
+          <td class="r-R">R</td><td class="r-C">C</td><td class="r-C">C</td><td class="r-C">C</td><td class="r-C">C</td><td class="r-A">A</td><td class="r-I">I</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="raci-legend rv d3">
+      <span class="rl-item"><span class="rl-badge r-R">R</span> Responsável — executa</span>
+      <span class="rl-item"><span class="rl-badge r-A">A</span> Aprovador — autoriza</span>
+      <span class="rl-item"><span class="rl-badge r-C">C</span> Consultado — opina</span>
+      <span class="rl-item"><span class="rl-badge r-I">I</span> Informado — recebe status</span>
+    </div>
+  </div>
+</section>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')];
+const dots=[...document.querySelectorAll('.dot')];
+let cur=0;
+function go(n){
+  n=Math.max(0,Math.min(n,slides.length-1));
+  slides[cur].classList.remove('active');
+  dots[cur].classList.remove('active');
+  cur=n;
+  slides[cur].classList.add('active');
+  dots[cur].classList.add('active');
+  slides[cur].scrollIntoView({behavior:'smooth'});
+}
+document.addEventListener('keydown',e=>{
+  if(['ArrowDown','ArrowRight',' '].includes(e.key)){e.preventDefault();go(cur+1);}
+  if(['ArrowUp','ArrowLeft'].includes(e.key)){e.preventDefault();go(cur-1);}
+});
+let ty=0;
+document.addEventListener('touchstart',e=>{ty=e.touches[0].clientY;},{passive:true});
+document.addEventListener('touchend',e=>{
+  const d=ty-e.changedTouches[0].clientY;
+  if(Math.abs(d)>40)go(cur+(d>0?1:-1));
+},{passive:true});
+const obs=new IntersectionObserver(en=>{
+  en.forEach(e=>{
+    if(e.isIntersecting){
+      const i=slides.indexOf(e.target);
+      slides.forEach(s=>s.classList.remove('active'));
+      dots.forEach(d=>d.classList.remove('active'));
+      e.target.classList.add('active');
+      if(dots[i])dots[i].classList.add('active');
+      cur=i;
+    }
+  });
+},{threshold:0.6});
+slides.forEach(s=>obs.observe(s));
+go(0);
+</script>
+</body>
+</html>
